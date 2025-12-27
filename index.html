@@ -843,6 +843,48 @@
         const currentPeriod = getCurrentPeriod();
         const totalComplete = juneCompleteCounts + julyAugCompleteCounts;
 
+        // Calculate percentage of properties complete for each count period
+        const getCountProgress = (periodNum) => {
+          if (totalProperties === 0) return 0;
+          const byProperty = periodNum <= 2 ? juneByProperty : julyAugByProperty;
+          const requiredCount = periodNum <= 2 ? periodNum : periodNum - 2;
+          const propertiesComplete = Object.values(byProperty).filter(count => count >= requiredCount).length;
+          return propertiesComplete / totalProperties;
+        };
+
+        // Interpolate between colors based on percentage (0-1)
+        const getProgressColor = (percent) => {
+          const stops = [
+            { pos: 0, r: 232, g: 228, b: 220 },    // sand (#e8e4dc) - not started
+            { pos: 0.01, r: 143, g: 186, b: 190 }, // light teal (#8FBABE) - just started
+            { pos: 0.5, r: 25, g: 94, b: 94 },     // medium teal (#195E5E)
+            { pos: 0.99, r: 8, g: 60, b: 60 },     // dark teal (#083C3C)
+            { pos: 1, r: 26, g: 60, b: 52 },       // forest green (#1a3c34) - complete
+          ];
+
+          let lower = stops[0];
+          let upper = stops[stops.length - 1];
+          for (let i = 0; i < stops.length - 1; i++) {
+            if (percent >= stops[i].pos && percent <= stops[i + 1].pos) {
+              lower = stops[i];
+              upper = stops[i + 1];
+              break;
+            }
+          }
+
+          const range = upper.pos - lower.pos;
+          const factor = range > 0 ? (percent - lower.pos) / range : 0;
+
+          const r = Math.round(lower.r + (upper.r - lower.r) * factor);
+          const g = Math.round(lower.g + (upper.g - lower.g) * factor);
+          const b = Math.round(lower.b + (upper.b - lower.b) * factor);
+
+          const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+          const textColor = luminance > 0.5 ? '#2d2a26' : '#ffffff';
+
+          return { bg: `rgb(${r}, ${g}, ${b})`, text: textColor };
+        };
+
         return (
           <div>
             {needsSetup && (
@@ -921,6 +963,48 @@
                 📈 Year Comparison
               </button>
             </div>
+
+            {/* Season Progress Indicator */}
+            {properties.length > 0 && (
+              <div style={styles.progressContainer}>
+                <div style={styles.progressTitle}>
+                  <span>🦇</span> {currentYear} Season Progress
+                </div>
+                <div style={styles.progressTrack}>
+                  {countPeriods.map((period, idx) => {
+                    const progress = getCountProgress(period.num);
+                    const progressColor = getProgressColor(progress);
+                    const isCurrent = period.num === currentPeriod;
+                    const isComplete = progress === 1;
+
+                    let dotStyle = {
+                      backgroundColor: progressColor.bg,
+                      color: progressColor.text
+                    };
+
+                    if (isCurrent && !isComplete) {
+                      const targetColor = getProgressColor(1);
+                      dotStyle.boxShadow = `0 0 0 3px ${colors.cream}, 0 0 0 5px ${targetColor.bg}`;
+                    }
+
+                    return (
+                      <div key={idx} style={styles.progressSlot}>
+                        <div style={{ ...styles.progressDot, ...dotStyle }}>
+                          {isComplete ? '✓' : period.num}
+                        </div>
+                        <div style={styles.progressLabel}>{period.label}</div>
+                        <div style={styles.progressDate}>{period.dateRange}</div>
+                        {progress > 0 && progress < 1 && (
+                          <div style={{ fontSize: '11px', color: colors.textLight, marginTop: '2px' }}>
+                            {Math.round(progress * 100)}%
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <div style={styles.card}>
               <h2 style={styles.cardTitle}>📅 BC Annual Bat Count Schedule</h2>
@@ -1065,57 +1149,6 @@
               })()}
             </div>
 
-            {thisYearCounts.length > 0 && (
-              <div style={styles.card}>
-                <h2 style={styles.cardTitle}>Recent Counting Sessions</h2>
-                <table style={styles.table}>
-                  <thead>
-                    <tr>
-                      <th style={styles.th}>Date</th>
-                      <th style={styles.th}>Property</th>
-                      <th style={styles.th}>Sites Counted</th>
-                      <th style={styles.th}>Total Bats</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(() => {
-                      // Group counts by property and date
-                      const grouped = {};
-                      thisYearCounts.forEach(count => {
-                        const site = sites.find(s => s.id === count.siteId);
-                        const property = site ? properties.find(p => p.id === site.propertyId) : null;
-                        const key = `${count.date}-${property?.id || 'unknown'}`;
-                        if (!grouped[key]) {
-                          grouped[key] = {
-                            date: count.date,
-                            property: property,
-                            sites: [],
-                            totalBats: 0
-                          };
-                        }
-                        grouped[key].sites.push(site);
-                        grouped[key].totalBats += parseInt(count.counter1Total) || 0; // Counter 1 only
-                      });
-                      
-                      return Object.values(grouped)
-                        .sort((a, b) => new Date(b.date) - new Date(a.date))
-                        .slice(0, 5)
-                        .map((group, idx) => (
-                          <tr key={idx}>
-                            <td style={styles.td}>{formatDate(group.date)}</td>
-                            <td style={styles.td}>{group.property?.name || 'Unknown'}</td>
-                            <td style={styles.td}>{group.sites.length}</td>
-                            <td style={styles.td}>{group.totalBats}</td>
-                          </tr>
-                        ));
-                    })()}
-                  </tbody>
-                </table>
-                <p style={{ ...styles.helpText, marginTop: '12px', textAlign: 'center' }}>
-                  Totals use Counter 1. Counter 2 is recorded for BC Bats data validation.
-                </p>
-              </div>
-            )}
           </div>
         );
       };
