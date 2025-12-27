@@ -11,6 +11,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; padding: 0; font-family: 'Lexend', sans-serif; }
@@ -912,9 +913,12 @@
                 <div style={styles.summaryLabel}>Volunteer Hours</div>
               </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
               <button onClick={() => setView('impactReport')} style={{ ...styles.button, ...styles.buttonSecondary }}>
                 📊 Impact Report
+              </button>
+              <button onClick={() => setView('yearComparison')} style={{ ...styles.button, ...styles.buttonSecondary }}>
+                📈 Year Comparison
               </button>
             </div>
 
@@ -3013,6 +3017,440 @@
         );
       };
 
+      // ============ YEAR COMPARISON VIEW ============
+      const YearComparisonView = () => {
+        const availableYears = getAvailableYears();
+        const [selectedPropertyId, setSelectedPropertyId] = useState('all');
+        const [year1, setYear1] = useState(availableYears[1] || availableYears[0] || new Date().getFullYear());
+        const [year2, setYear2] = useState(availableYears[0] || new Date().getFullYear());
+
+        // Get sites to include based on property filter
+        const getSitesToInclude = () => {
+          if (selectedPropertyId === 'all') {
+            return sites;
+          }
+          return sites.filter(s => s.propertyId === selectedPropertyId);
+        };
+
+        const sitesToInclude = getSitesToInclude();
+        const siteIds = sitesToInclude.map(s => s.id);
+
+        // Get seasonal counts for a site in a given year
+        const getSeasonalCounts = (siteId, year) => {
+          const siteCounts = counts.filter(c => {
+            const countYear = new Date(c.date).getFullYear();
+            return countYear === year && c.siteId === siteId;
+          }).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+          const juneCounts = siteCounts.filter(c => getSeasonSlot(c.date) === 'june');
+          const julyAugCounts = siteCounts.filter(c => getSeasonSlot(c.date) === 'julyAug');
+
+          return {
+            june1: juneCounts[0] ? parseInt(juneCounts[0].counter1Total) || 0 : null,
+            june2: juneCounts[1] ? parseInt(juneCounts[1].counter1Total) || 0 : null,
+            julyAug1: julyAugCounts[0] ? parseInt(julyAugCounts[0].counter1Total) || 0 : null,
+            julyAug2: julyAugCounts[1] ? parseInt(julyAugCounts[1].counter1Total) || 0 : null,
+          };
+        };
+
+        // Get yearly totals for summary
+        const getYearTotals = (year) => {
+          const yearCounts = counts.filter(c => {
+            const countYear = new Date(c.date).getFullYear();
+            return countYear === year && siteIds.includes(c.siteId);
+          });
+
+          const totalBats = yearCounts.reduce((sum, c) => sum + (parseInt(c.counter1Total) || 0), 0);
+          const maxSingleCount = yearCounts.length > 0
+            ? Math.max(...yearCounts.map(c => parseInt(c.counter1Total) || 0))
+            : 0;
+
+          return { totalBats, maxSingleCount };
+        };
+
+        const totals1 = getYearTotals(year1);
+        const totals2 = getYearTotals(year2);
+
+        // Calculate change percentages
+        const calcChange = (val1, val2) => {
+          if (val1 === 0 && val2 === 0) return { value: 0, display: '—' };
+          if (val1 === 0) return { value: 100, display: '+100%' };
+          const pct = ((val2 - val1) / val1) * 100;
+          const sign = pct > 0 ? '+' : '';
+          return { value: pct, display: `${sign}${pct.toFixed(0)}%` };
+        };
+
+        const totalChange = calcChange(totals1.totalBats, totals2.totalBats);
+        const maxChange = calcChange(totals1.maxSingleCount, totals2.maxSingleCount);
+
+        // Get color for change indicator
+        const getChangeColor = (change) => {
+          if (change.value > 0) return '#28a745';
+          if (change.value < 0) return '#dc3545';
+          return colors.textLight;
+        };
+
+        const ComparisonCard = ({ label, val1, val2, change }) => (
+          <div style={{ ...styles.summaryCard, padding: '16px' }}>
+            <div style={{ fontSize: '14px', color: colors.textLight, marginBottom: '8px' }}>{label}</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '12px', color: colors.textLight }}>{year1}</div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: colors.forest }}>{val1.toLocaleString()}</div>
+              </div>
+              <div style={{ fontSize: '20px', color: colors.textLight }}>→</div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '12px', color: colors.textLight }}>{year2}</div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: colors.forest }}>{val2.toLocaleString()}</div>
+              </div>
+            </div>
+            <div style={{
+              marginTop: '8px',
+              fontSize: '16px',
+              fontWeight: '600',
+              color: getChangeColor(change),
+              textAlign: 'center'
+            }}>
+              {change.display}
+            </div>
+          </div>
+        );
+
+        // Change indicator arrow
+        const ChangeIndicator = ({ current, previous }) => {
+          if (current === null || previous === null) return null;
+          const diff = current - previous;
+          if (diff > 0) return <span style={{ color: '#2e7d32', marginLeft: '4px', fontSize: '14px' }}>↑</span>;
+          if (diff < 0) return <span style={{ color: '#dc3545', marginLeft: '4px', fontSize: '14px' }}>↓</span>;
+          return <span style={{ color: '#888', marginLeft: '4px', fontSize: '14px' }}>→</span>;
+        };
+
+        // Line chart component for a single site
+        const SiteChart = ({ site, s1, s2 }) => {
+          const canvasRef = React.useRef(null);
+          const chartRef = React.useRef(null);
+          const property = properties.find(p => p.id === site.propertyId);
+
+          React.useEffect(() => {
+            if (!canvasRef.current) return;
+
+            // Destroy existing chart if it exists
+            if (chartRef.current) {
+              chartRef.current.destroy();
+            }
+
+            const ctx = canvasRef.current.getContext('2d');
+
+            chartRef.current = new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: ['Count #1', 'Count #2', 'Count #3', 'Count #4'],
+                datasets: [
+                  {
+                    label: year1.toString(),
+                    data: [s1.june1, s1.june2, s1.julyAug1, s1.julyAug2],
+                    borderColor: '#7ba38f',
+                    backgroundColor: 'rgba(123, 163, 143, 0.2)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                  },
+                  {
+                    label: year2.toString(),
+                    data: [s2.june1, s2.june2, s2.julyAug1, s2.julyAug2],
+                    borderColor: '#1a3c34',
+                    backgroundColor: 'rgba(26, 60, 52, 0.2)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                  }
+                ]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'top',
+                    labels: {
+                      font: { family: 'Lexend', size: 14 },
+                      usePointStyle: true
+                    }
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: (context) => {
+                        const value = context.parsed.y;
+                        return value !== null ? `${context.dataset.label}: ${value} bats` : `${context.dataset.label}: No count`;
+                      }
+                    }
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    title: {
+                      display: true,
+                      text: 'Bat Count',
+                      font: { family: 'Lexend', size: 12 }
+                    },
+                    ticks: {
+                      font: { family: 'Lexend' }
+                    }
+                  },
+                  x: {
+                    ticks: {
+                      font: { family: 'Lexend' }
+                    }
+                  }
+                }
+              }
+            });
+
+            return () => {
+              if (chartRef.current) {
+                chartRef.current.destroy();
+              }
+            };
+          }, [s1, s2, year1, year2]);
+
+          return (
+            <div style={{ ...styles.card, marginBottom: '24px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', color: colors.forest, marginBottom: '4px', marginTop: 0 }}>
+                {site.name}
+              </h3>
+              {selectedPropertyId === 'all' && property && (
+                <div style={{ fontSize: '14px', color: colors.textLight, marginBottom: '16px' }}>{property.name}</div>
+              )}
+              <div style={{ height: '250px' }}>
+                <canvas ref={canvasRef}></canvas>
+              </div>
+            </div>
+          );
+        };
+
+        // Cell showing year2 count with comparison arrow to year1
+        const CountCell = ({ val1, val2 }) => {
+          const hasVal2 = val2 !== null;
+          const hasVal1 = val1 !== null;
+
+          return (
+            <td style={{
+              ...styles.td,
+              textAlign: 'center',
+              backgroundColor: hasVal2 ? '#f0fff0' : '#f8f8f8'
+            }}>
+              {hasVal2 ? (
+                <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                  {val2}
+                  <ChangeIndicator current={val2} previous={val1} />
+                </div>
+              ) : (
+                <div style={{ fontSize: '14px', color: '#999' }}>—</div>
+              )}
+              {hasVal1 && (
+                <div style={{ fontSize: '12px', color: '#666' }}>
+                  was {val1}
+                </div>
+              )}
+            </td>
+          );
+        };
+
+        return (
+          <div>
+            <h1 style={{ fontSize: '28px', fontWeight: '600', color: colors.forest, marginBottom: '24px', textAlign: 'center' }}>
+              📈 Year-over-Year Comparison
+            </h1>
+
+            {/* Filters */}
+            <div style={{ ...styles.card, marginBottom: '24px' }}>
+              <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                <div style={{ flex: '1', minWidth: '200px' }}>
+                  <label style={{ ...styles.label, fontSize: '14px' }}>Property</label>
+                  <select
+                    value={selectedPropertyId}
+                    onChange={(e) => setSelectedPropertyId(e.target.value)}
+                    style={styles.select}
+                  >
+                    <option value="all">All Properties</option>
+                    {properties.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ minWidth: '120px' }}>
+                  <label style={{ ...styles.label, fontSize: '14px' }}>Year 1</label>
+                  <select
+                    value={year1}
+                    onChange={(e) => setYear1(parseInt(e.target.value))}
+                    style={styles.select}
+                  >
+                    {availableYears.map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ fontSize: '20px', color: colors.textLight, paddingBottom: '12px' }}>vs</div>
+                <div style={{ minWidth: '120px' }}>
+                  <label style={{ ...styles.label, fontSize: '14px' }}>Year 2</label>
+                  <select
+                    value={year2}
+                    onChange={(e) => setYear2(parseInt(e.target.value))}
+                    style={styles.select}
+                  >
+                    {availableYears.map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {availableYears.length < 2 ? (
+              <div style={styles.emptyState}>
+                <p>Need data from at least 2 years to compare.</p>
+                <p style={{ fontSize: '16px', marginTop: '8px' }}>Keep counting!</p>
+              </div>
+            ) : (
+              <>
+                {/* Summary Comparison */}
+                <div style={styles.card}>
+                  <h2 style={styles.cardTitle}>Summary</h2>
+                  <div style={styles.summaryGrid}>
+                    <ComparisonCard
+                      label="Total Bats Counted"
+                      val1={totals1.totalBats}
+                      val2={totals2.totalBats}
+                      change={totalChange}
+                    />
+                    <ComparisonCard
+                      label="Highest Single Count"
+                      val1={totals1.maxSingleCount}
+                      val2={totals2.maxSingleCount}
+                      change={maxChange}
+                    />
+                  </div>
+                </div>
+
+                {/* Comparison Table */}
+                <div style={styles.card}>
+                  <h2 style={styles.cardTitle}>{year2} Counts vs {year1}</h2>
+                  {sitesToInclude.length === 0 ? (
+                    <div style={styles.emptyState}>No sites found for selected property.</div>
+                  ) : (
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={styles.table}>
+                        <thead>
+                          <tr>
+                            <th style={styles.th}>Site</th>
+                            <th style={{ ...styles.th, textAlign: 'center' }}>Count #1</th>
+                            <th style={{ ...styles.th, textAlign: 'center' }}>Count #2</th>
+                            <th style={{ ...styles.th, textAlign: 'center' }}>Count #3</th>
+                            <th style={{ ...styles.th, textAlign: 'center' }}>Count #4</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sitesToInclude.map(site => {
+                            const s1 = getSeasonalCounts(site.id, year1);
+                            const s2 = getSeasonalCounts(site.id, year2);
+                            const property = properties.find(p => p.id === site.propertyId);
+
+                            return (
+                              <tr key={site.id}>
+                                <td style={styles.td}>
+                                  <div style={{ fontWeight: '600' }}>{site.name}</div>
+                                  {selectedPropertyId === 'all' && property && (
+                                    <div style={{ fontSize: '14px', color: colors.textLight }}>{property.name}</div>
+                                  )}
+                                </td>
+                                <CountCell val1={s1.june1} val2={s2.june1} />
+                                <CountCell val1={s1.june2} val2={s2.june2} />
+                                <CountCell val1={s1.julyAug1} val2={s2.julyAug1} />
+                                <CountCell val1={s1.julyAug2} val2={s2.julyAug2} />
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                {/* Charts Section */}
+                <h2 style={{ fontSize: '22px', fontWeight: '600', color: colors.forest, marginTop: '32px', marginBottom: '16px' }}>
+                  Trend Charts
+                </h2>
+                {selectedPropertyId === 'all' ? (
+                  // Aggregated chart for all properties
+                  (() => {
+                    const aggregatedS1 = {
+                      june1: sitesToInclude.reduce((sum, site) => {
+                        const val = getSeasonalCounts(site.id, year1).june1;
+                        return val !== null ? sum + val : sum;
+                      }, 0),
+                      june2: sitesToInclude.reduce((sum, site) => {
+                        const val = getSeasonalCounts(site.id, year1).june2;
+                        return val !== null ? sum + val : sum;
+                      }, 0),
+                      julyAug1: sitesToInclude.reduce((sum, site) => {
+                        const val = getSeasonalCounts(site.id, year1).julyAug1;
+                        return val !== null ? sum + val : sum;
+                      }, 0),
+                      julyAug2: sitesToInclude.reduce((sum, site) => {
+                        const val = getSeasonalCounts(site.id, year1).julyAug2;
+                        return val !== null ? sum + val : sum;
+                      }, 0)
+                    };
+                    const aggregatedS2 = {
+                      june1: sitesToInclude.reduce((sum, site) => {
+                        const val = getSeasonalCounts(site.id, year2).june1;
+                        return val !== null ? sum + val : sum;
+                      }, 0),
+                      june2: sitesToInclude.reduce((sum, site) => {
+                        const val = getSeasonalCounts(site.id, year2).june2;
+                        return val !== null ? sum + val : sum;
+                      }, 0),
+                      julyAug1: sitesToInclude.reduce((sum, site) => {
+                        const val = getSeasonalCounts(site.id, year2).julyAug1;
+                        return val !== null ? sum + val : sum;
+                      }, 0),
+                      julyAug2: sitesToInclude.reduce((sum, site) => {
+                        const val = getSeasonalCounts(site.id, year2).julyAug2;
+                        return val !== null ? sum + val : sum;
+                      }, 0)
+                    };
+                    return (
+                      <SiteChart
+                        key="all-properties"
+                        site={{ id: 'all', name: 'All Properties Combined' }}
+                        s1={aggregatedS1}
+                        s2={aggregatedS2}
+                      />
+                    );
+                  })()
+                ) : (
+                  // Individual charts per roost site for single property
+                  sitesToInclude.map(site => {
+                    const s1 = getSeasonalCounts(site.id, year1);
+                    const s2 = getSeasonalCounts(site.id, year2);
+                    return <SiteChart key={site.id} site={site} s1={s1} s2={s2} />;
+                  })
+                )}
+              </>
+            )}
+
+            <div style={{ marginTop: '24px' }}>
+              <button onClick={() => setView('home')} style={{ ...styles.button, ...styles.buttonSecondary }}>
+                ← Back to Home
+              </button>
+            </div>
+          </div>
+        );
+      };
+
       // ============ SEASON VIEW ============
       const SeasonView = () => {
         const currentYear = new Date().getFullYear();
@@ -3941,6 +4379,7 @@
           {view === 'settings' && <SettingsView />}
           {view === 'appSettings' && <AppSettingsView />}
           {view === 'impactReport' && <ImpactReportView />}
+          {view === 'yearComparison' && <YearComparisonView />}
           {view === 'season' && <SeasonView />}
           {view === 'mileage' && <MileageReportView />}
           {view === 'properties' && <PropertiesView />}
