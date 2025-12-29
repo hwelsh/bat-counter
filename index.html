@@ -3245,6 +3245,71 @@
           ? Math.max(...filteredCounts.map(c => parseInt(c.volunteerCount) || 1))
           : 0;
 
+        // Greatest seasonal growth by property
+        const getPropertySeasonalGrowth = () => {
+          let bestProperty = null;
+          let bestGrowth = 0;
+
+          // Group by property and year
+          const propertyYearData = {};
+
+          filteredCounts.forEach(c => {
+            const site = sites.find(s => s.id === c.siteId);
+            if (!site) return;
+            const property = properties.find(p => p.id === site.propertyId);
+            if (!property) return;
+
+            const year = new Date(c.date).getFullYear();
+            const slot = getSeasonSlot(c.date);
+            if (slot !== 'june' && slot !== 'julyAug') return;
+
+            const key = `${property.id}-${year}`;
+            if (!propertyYearData[key]) {
+              propertyYearData[key] = { property, year, juneCounts: [], julyAugCounts: [] };
+            }
+
+            const batCount = parseInt(c.counter1Total) || 0;
+            if (slot === 'june') {
+              propertyYearData[key].juneCounts.push({ date: c.date, count: batCount });
+            } else {
+              propertyYearData[key].julyAugCounts.push({ date: c.date, count: batCount });
+            }
+          });
+
+          // For each property-year, calculate growth
+          Object.values(propertyYearData).forEach(data => {
+            if (data.juneCounts.length === 0 || data.julyAugCounts.length === 0) return;
+
+            // Group by date and sum across all sites for that date
+            const juneByDate = {};
+            data.juneCounts.forEach(c => {
+              juneByDate[c.date] = (juneByDate[c.date] || 0) + c.count;
+            });
+            const julyAugByDate = {};
+            data.julyAugCounts.forEach(c => {
+              julyAugByDate[c.date] = (julyAugByDate[c.date] || 0) + c.count;
+            });
+
+            const juneTotals = Object.values(juneByDate);
+            const julyAugTotals = Object.values(julyAugByDate);
+
+            if (juneTotals.length === 0 || julyAugTotals.length === 0) return;
+
+            const juneMin = Math.min(...juneTotals);
+            const julyAugMax = Math.max(...julyAugTotals);
+            const growth = julyAugMax - juneMin;
+
+            if (growth > bestGrowth) {
+              bestGrowth = growth;
+              bestProperty = data.property;
+            }
+          });
+
+          return { property: bestProperty, growth: bestGrowth };
+        };
+
+        const seasonalGrowth = getPropertySeasonalGrowth();
+
         // Properties and sites stats
         const activePropertyIds = [...new Set(filteredCounts.map(c => {
           const site = sites.find(s => s.id === c.siteId);
@@ -3315,11 +3380,16 @@
 
             <div style={styles.card}>
               <h2 style={styles.cardTitle}>🏆 Records</h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 <StatCard
                   value={highestSingleCount}
                   label="Highest Single Count"
                   subtext={highestCountProperty ? `${highestCountProperty.name}` : ''}
+                />
+                <StatCard
+                  value={seasonalGrowth.growth > 0 ? `+${seasonalGrowth.growth}` : '—'}
+                  label="Greatest Seasonal Growth"
+                  subtext={seasonalGrowth.property ? `${seasonalGrowth.property.name}` : ''}
                 />
                 <StatCard value={mostVolunteers} label="Most Volunteers" />
               </div>
