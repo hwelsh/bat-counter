@@ -3058,50 +3058,99 @@
           return site?.propertyId;
         }).filter(Boolean))];
 
-        // Get unique counting dates for calendar
-        const countingDates = [...new Set(seasonYearCounts.map(c => c.date))];
-
-        // Calendar component for a single month
-        const MonthCalendar = ({ year, month, monthName }) => {
-          const firstDay = new Date(year, month, 1).getDay();
-          const daysInMonth = new Date(year, month + 1, 0).getDate();
-          const days = [];
-
-          // Empty cells for days before the 1st
-          for (let i = 0; i < firstDay; i++) {
-            days.push(<div key={`empty-${i}`} style={{ padding: '8px' }}></div>);
+        // Get count dates with property info for calendar tooltips
+        const countsByDate = {};
+        seasonYearCounts.forEach(c => {
+          const site = sites.find(s => s.id === c.siteId);
+          const property = site ? properties.find(p => p.id === site.propertyId) : null;
+          const propertyName = property ? property.name : 'Unknown';
+          if (!countsByDate[c.date]) {
+            countsByDate[c.date] = [];
           }
+          countsByDate[c.date].push(propertyName);
+        });
 
-          // Days of the month
+        // Helper to check if date is in count window
+        const isInCountWindow = (month, day) => {
+          if (month === 5 && day >= 1 && day <= 21) return 'june';
+          if (month === 6 && day >= 11) return 'julyAug';
+          if (month === 7 && day >= 1 && day <= 5) return 'julyAug';
+          return null;
+        };
+
+        // Generate calendar for a month (matching home page style)
+        const renderMonth = (monthIndex, monthName) => {
+          const firstDay = new Date(selectedSeasonYear, monthIndex, 1).getDay();
+          const daysInMonth = new Date(selectedSeasonYear, monthIndex + 1, 0).getDate();
+          const weeks = [];
+          let currentWeek = new Array(firstDay).fill(null);
+
           for (let day = 1; day <= daysInMonth; day++) {
-            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const hasCount = countingDates.includes(dateStr);
-            days.push(
-              <div
-                key={day}
-                style={{
-                  padding: '8px',
-                  textAlign: 'center',
-                  backgroundColor: hasCount ? colors.primary : 'transparent',
-                  color: hasCount ? 'white' : colors.text,
-                  borderRadius: '4px',
-                  fontWeight: hasCount ? '600' : 'normal',
-                }}
-                title={hasCount ? `Counting session on ${dateStr}` : ''}
-              >
-                {day}
-              </div>
-            );
+            currentWeek.push(day);
+            if (currentWeek.length === 7) {
+              weeks.push(currentWeek);
+              currentWeek = [];
+            }
+          }
+          if (currentWeek.length > 0) {
+            while (currentWeek.length < 7) currentWeek.push(null);
+            weeks.push(currentWeek);
           }
 
           return (
             <div style={{ flex: '1', minWidth: '200px' }}>
-              <h4 style={{ textAlign: 'center', marginBottom: '8px', color: colors.forest }}>{monthName}</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', fontSize: '14px' }}>
+              <div style={{ textAlign: 'center', fontWeight: '600', color: colors.forest, marginBottom: '8px', fontSize: '16px' }}>
+                {monthName}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', fontSize: '12px' }}>
                 {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
-                  <div key={d} style={{ padding: '4px', textAlign: 'center', fontWeight: '600', color: colors.sage, fontSize: '12px' }}>{d}</div>
+                  <div key={d} style={{ textAlign: 'center', color: colors.textLight, fontWeight: '500', padding: '4px 0' }}>{d}</div>
                 ))}
-                {days}
+                {weeks.flat().map((day, idx) => {
+                  if (day === null) {
+                    return <div key={idx} style={{ padding: '6px 0' }}></div>;
+                  }
+
+                  const dateStr = `${selectedSeasonYear}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                  const dateProperties = countsByDate[dateStr] || [];
+                  const hasCount = dateProperties.length > 0;
+                  const countWindow = isInCountWindow(monthIndex, day);
+
+                  const uniqueProperties = [...new Set(dateProperties)];
+                  const tooltipText = hasCount ? uniqueProperties.join(', ') : '';
+
+                  let bgColor = 'transparent';
+                  let textColor = colors.text;
+
+                  if (countWindow === 'june') {
+                    bgColor = 'rgba(143, 186, 190, 0.3)';
+                  } else if (countWindow === 'julyAug') {
+                    bgColor = 'rgba(74, 124, 89, 0.2)';
+                  }
+
+                  if (hasCount) {
+                    bgColor = colors.forest;
+                    textColor = '#ffffff';
+                  }
+
+                  return (
+                    <div
+                      key={idx}
+                      title={tooltipText}
+                      style={{
+                        textAlign: 'center',
+                        padding: '6px 0',
+                        backgroundColor: bgColor,
+                        color: textColor,
+                        borderRadius: hasCount ? '50%' : '2px',
+                        fontWeight: hasCount ? '600' : '400',
+                        cursor: hasCount ? 'pointer' : 'default',
+                      }}
+                    >
+                      {day}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );
@@ -3160,14 +3209,24 @@
                 {/* Calendar View */}
                 <div style={styles.card}>
                   <h2 style={styles.cardTitle}>🗓️ Counting Calendar</h2>
-                  <p style={{ color: colors.textLight, marginBottom: '16px' }}>
-                    Dates with counting sessions are highlighted.
-                  </p>
-                  <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-                    <MonthCalendar year={selectedSeasonYear} month={4} monthName="May" />
-                    <MonthCalendar year={selectedSeasonYear} month={5} monthName="June" />
-                    <MonthCalendar year={selectedSeasonYear} month={6} monthName="July" />
-                    <MonthCalendar year={selectedSeasonYear} month={7} monthName="August" />
+                  <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                    {renderMonth(5, 'June')}
+                    {renderMonth(6, 'July')}
+                    {renderMonth(7, 'August')}
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '16px', fontSize: '13px', color: colors.textLight, flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div style={{ width: '16px', height: '16px', backgroundColor: 'rgba(143, 186, 190, 0.3)', borderRadius: '2px' }}></div>
+                      <span>Jun 1-21</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div style={{ width: '16px', height: '16px', backgroundColor: 'rgba(74, 124, 89, 0.2)', borderRadius: '2px' }}></div>
+                      <span>Jul 11 - Aug 5</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div style={{ width: '16px', height: '16px', backgroundColor: colors.forest, borderRadius: '50%' }}></div>
+                      <span>Count completed</span>
+                    </div>
                   </div>
                 </div>
 
