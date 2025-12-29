@@ -777,7 +777,7 @@
           : '—';
         
         // This year's stats
-        const thisYearCountSessions = thisYearCounts.length;
+        const thisYearCountingNights = [...new Set(thisYearCounts.map(c => c.date))].length;
         const thisYearVolunteerHours = thisYearCounts.reduce((sum, c) => {
           if (!c.startTime || !c.endTime) return sum;
           const [startH, startM] = c.startTime.split(':').map(Number);
@@ -946,8 +946,8 @@
             <h2 style={{ fontSize: '20px', fontWeight: '600', color: colors.forest, marginBottom: '16px', marginTop: '8px' }}>📈 {currentYear} Impact</h2>
             <div style={styles.summaryGrid}>
               <div style={styles.summaryCard}>
-                <div style={styles.summaryNumber}>{thisYearCountSessions}</div>
-                <div style={styles.summaryLabel}>Count Sessions</div>
+                <div style={styles.summaryNumber}>{thisYearCountingNights}</div>
+                <div style={styles.summaryLabel}>Counting Nights</div>
               </div>
               <div style={styles.summaryCard}>
                 <div style={styles.summaryNumber}>{totalBatsThisYear.toLocaleString()}</div>
