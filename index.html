@@ -3202,7 +3202,12 @@
         const highestCountRecord = filteredCounts.find(c => (parseInt(c.counter1Total) || 0) === highestSingleCount);
         const highestCountSite = highestCountRecord ? sites.find(s => s.id === highestCountRecord.siteId) : null;
         const highestCountProperty = highestCountSite ? properties.find(p => p.id === highestCountSite.propertyId) : null;
-        
+
+        // Most volunteers at a session
+        const mostVolunteers = filteredCounts.length > 0
+          ? Math.max(...filteredCounts.map(c => parseInt(c.volunteerCount) || 1))
+          : 0;
+
         // Properties and sites stats
         const activePropertyIds = [...new Set(filteredCounts.map(c => {
           const site = sites.find(s => s.id === c.siteId);
@@ -3273,14 +3278,13 @@
 
             <div style={styles.card}>
               <h2 style={styles.cardTitle}>🏆 Records</h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
                 <StatCard
                   value={highestSingleCount}
                   label="Highest Single Count"
                   subtext={highestCountProperty ? `${highestCountProperty.name}` : ''}
                 />
-                <StatCard value={activePropertyIds.length} label="Properties Counted" />
-                <StatCard value={activeSiteIds.length} label="Sites Counted" />
+                <StatCard value={mostVolunteers} label="Most Volunteers" />
               </div>
             </div>
           </div>
