@@ -15,6 +15,61 @@
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; padding: 0; font-family: 'Lexend', sans-serif; }
+
+    /* Print styles */
+    @media print {
+      /* Hide navigation, buttons, and non-essential UI */
+      .no-print,
+      .no-print * {
+        display: none !important;
+      }
+
+      /* Reset backgrounds for printer-friendly output */
+      body {
+        background: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      /* Ensure cards print with visible borders */
+      .print-card {
+        border: 1px solid #ccc !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-bottom: 16px !important;
+      }
+
+      /* Make stat cards print nicely */
+      .print-stat {
+        border: 1px solid #ddd !important;
+        background: #f9f9f9 !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      /* Ensure tables print fully */
+      table {
+        break-inside: auto;
+      }
+      tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      /* Print header styling */
+      .print-header {
+        text-align: center;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #1a3c34;
+      }
+
+      /* Page margins */
+      @page {
+        margin: 0.75in;
+      }
+    }
   </style>
 </head>
 <body>
@@ -3168,13 +3223,26 @@
           );
         };
 
+        const handlePrint = () => window.print();
+
         return (
           <div>
+            {/* Print Header - only visible when printing */}
+            <div className="print-header" style={{ display: 'none' }}>
+              <style>{`.print-header { display: block !important; } @media screen { .print-header { display: none !important; } }`}</style>
+              <h1 style={{ fontSize: '24px', fontWeight: '600', color: colors.forest, margin: '0 0 8px 0' }}>
+                🦇 {appSettings.appTitle || 'Thetis Island Bat Watch'}
+              </h1>
+              <p style={{ fontSize: '14px', color: colors.textLight, margin: 0 }}>
+                {selectedSeasonYear} Season Report • Printed {new Date().toLocaleDateString()}
+              </p>
+            </div>
+
             <h1 style={{ fontSize: '28px', fontWeight: '600', color: colors.forest, marginBottom: '24px', textAlign: 'center' }}>
               📅 Season Viewer
             </h1>
 
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: '16px', marginBottom: '24px' }} className="no-print">
               <div>
                 <label style={{ ...styles.label, fontSize: '16px' }}>Season</label>
                 <select
@@ -3187,6 +3255,9 @@
                   ))}
                 </select>
               </div>
+              <button onClick={handlePrint} style={{ ...styles.button, ...styles.buttonSecondary }}>
+                🖨️ Print Report
+              </button>
             </div>
 
             {seasonYearCounts.length === 0 ? (
@@ -3505,24 +3576,40 @@
           </div>
         );
 
+        const handlePrint = () => window.print();
+
         return (
           <div>
+            {/* Print Header - only visible when printing */}
+            <div className="print-header" style={{ display: 'none' }}>
+              <style>{`.print-header { display: block !important; } @media screen { .print-header { display: none !important; } }`}</style>
+              <h1 style={{ fontSize: '24px', fontWeight: '600', color: colors.forest, margin: '0 0 8px 0' }}>
+                🦇 {appSettings.appTitle || 'Thetis Island Bat Watch'}
+              </h1>
+              <p style={{ fontSize: '14px', color: colors.textLight, margin: 0 }}>
+                Impact Report {selectedYear === 'all' ? '(All Time)' : `(${selectedYear})`} • Printed {new Date().toLocaleDateString()}
+              </p>
+            </div>
+
             <h1 style={{ fontSize: '28px', fontWeight: '600', color: colors.forest, marginBottom: '24px', textAlign: 'center' }}>
               📊 Impact Report
             </h1>
-            
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: '16px', marginBottom: '24px' }} className="no-print">
               <div>
                 <label style={{ ...styles.label, fontSize: '16px' }}>Time Period</label>
-                <select 
-                  value={selectedYear} 
-                  onChange={(e) => setSelectedYear(e.target.value)} 
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
                   style={{ ...styles.select, width: 'auto', minWidth: '150px' }}
                 >
                   <option value="all">All Time</option>
                   {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
                 </select>
               </div>
+              <button onClick={handlePrint} style={{ ...styles.button, ...styles.buttonSecondary }}>
+                🖨️ Print Report
+              </button>
             </div>
 
             {selectedYear === 'all' && (
@@ -3826,14 +3913,28 @@
           );
         };
 
+        const handlePrint = () => window.print();
+        const selectedProperty = properties.find(p => p.id === selectedPropertyId);
+
         return (
           <div>
+            {/* Print Header - only visible when printing */}
+            <div className="print-header" style={{ display: 'none' }}>
+              <style>{`.print-header { display: block !important; } @media screen { .print-header { display: none !important; } }`}</style>
+              <h1 style={{ fontSize: '24px', fontWeight: '600', color: colors.forest, margin: '0 0 8px 0' }}>
+                🦇 {appSettings.appTitle || 'Thetis Island Bat Watch'}
+              </h1>
+              <p style={{ fontSize: '14px', color: colors.textLight, margin: 0 }}>
+                Year-over-Year Comparison: {year1} vs {year2} {selectedPropertyId !== 'all' && selectedProperty ? `• ${selectedProperty.name}` : '• All Properties'} • Printed {new Date().toLocaleDateString()}
+              </p>
+            </div>
+
             <h1 style={{ fontSize: '28px', fontWeight: '600', color: colors.forest, marginBottom: '24px', textAlign: 'center' }}>
               📈 Year-over-Year Comparison
             </h1>
 
             {/* Filters */}
-            <div style={{ ...styles.card, marginBottom: '24px' }}>
+            <div style={{ ...styles.card, marginBottom: '24px' }} className="no-print">
               <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
                 <div style={{ flex: '1', minWidth: '200px' }}>
                   <label style={{ ...styles.label, fontSize: '14px' }}>Property</label>
@@ -3873,6 +3974,9 @@
                     ))}
                   </select>
                 </div>
+                <button onClick={handlePrint} style={{ ...styles.button, ...styles.buttonSecondary }}>
+                  🖨️ Print Report
+                </button>
               </div>
             </div>
 
@@ -4574,7 +4678,7 @@
             </div>
           )}
 
-          <header style={styles.header}>
+          <header style={styles.header} className="no-print">
             <div style={styles.headerTop}>
               <div style={styles.headerBrand}>
                 <span style={{ fontSize: '40px' }}>🦇</span>
@@ -4624,7 +4728,7 @@
           {view === 'editCount' && <EditCountView />}
           {view === 'history' && <HistoryView />}
 
-          <footer style={{ marginTop: '48px', padding: '32px 24px', textAlign: 'center', borderTop: `2px solid ${colors.sand}` }}>
+          <footer style={{ marginTop: '48px', padding: '32px 24px', textAlign: 'center', borderTop: `2px solid ${colors.sand}` }} className="no-print">
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '24px', marginBottom: '20px', flexWrap: 'wrap' }}>
               <a href="https://www.thetisislandnatureconservancy.org" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', textAlign: 'center' }}>
                 <img src="https://static.wixstatic.com/media/a5ed41_b0523212bda343688442821f3d57635e~mv2.png/v1/crop/x_0,y_37,w_1000,h_926/fill/w_80,h_74,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/ThINC%20logo_1000x1000px.png" alt="ThINC Logo" style={{ height: '60px' }} />
