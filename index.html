@@ -3349,6 +3349,67 @@
               </div>
             ) : (
               <>
+                {/* Charts Section - at the top for visual impact */}
+                <h2 style={{ fontSize: '22px', fontWeight: '600', color: colors.forest, marginBottom: '16px' }}>
+                  Trend Charts
+                </h2>
+                {selectedPropertyId === 'all' ? (
+                  // Aggregated chart for all properties
+                  (() => {
+                    const aggregatedS1 = {
+                      june1: sitesToInclude.reduce((sum, site) => {
+                        const val = getSeasonalCounts(site.id, year1).june1;
+                        return val !== null ? sum + val : sum;
+                      }, 0),
+                      june2: sitesToInclude.reduce((sum, site) => {
+                        const val = getSeasonalCounts(site.id, year1).june2;
+                        return val !== null ? sum + val : sum;
+                      }, 0),
+                      julyAug1: sitesToInclude.reduce((sum, site) => {
+                        const val = getSeasonalCounts(site.id, year1).julyAug1;
+                        return val !== null ? sum + val : sum;
+                      }, 0),
+                      julyAug2: sitesToInclude.reduce((sum, site) => {
+                        const val = getSeasonalCounts(site.id, year1).julyAug2;
+                        return val !== null ? sum + val : sum;
+                      }, 0)
+                    };
+                    const aggregatedS2 = {
+                      june1: sitesToInclude.reduce((sum, site) => {
+                        const val = getSeasonalCounts(site.id, year2).june1;
+                        return val !== null ? sum + val : sum;
+                      }, 0),
+                      june2: sitesToInclude.reduce((sum, site) => {
+                        const val = getSeasonalCounts(site.id, year2).june2;
+                        return val !== null ? sum + val : sum;
+                      }, 0),
+                      julyAug1: sitesToInclude.reduce((sum, site) => {
+                        const val = getSeasonalCounts(site.id, year2).julyAug1;
+                        return val !== null ? sum + val : sum;
+                      }, 0),
+                      julyAug2: sitesToInclude.reduce((sum, site) => {
+                        const val = getSeasonalCounts(site.id, year2).julyAug2;
+                        return val !== null ? sum + val : sum;
+                      }, 0)
+                    };
+                    return (
+                      <SiteChart
+                        key="all-properties"
+                        site={{ id: 'all', name: 'All Properties Combined' }}
+                        s1={aggregatedS1}
+                        s2={aggregatedS2}
+                      />
+                    );
+                  })()
+                ) : (
+                  // Individual charts per roost site for single property
+                  sitesToInclude.map(site => {
+                    const s1 = getSeasonalCounts(site.id, year1);
+                    const s2 = getSeasonalCounts(site.id, year2);
+                    return <SiteChart key={site.id} site={site} s1={s1} s2={s2} />;
+                  })
+                )}
+
                 {/* Summary Comparison */}
                 <div style={styles.card}>
                   <h2 style={styles.cardTitle}>Summary</h2>
@@ -3412,66 +3473,6 @@
                   )}
                 </div>
 
-                {/* Charts Section */}
-                <h2 style={{ fontSize: '22px', fontWeight: '600', color: colors.forest, marginTop: '32px', marginBottom: '16px' }}>
-                  Trend Charts
-                </h2>
-                {selectedPropertyId === 'all' ? (
-                  // Aggregated chart for all properties
-                  (() => {
-                    const aggregatedS1 = {
-                      june1: sitesToInclude.reduce((sum, site) => {
-                        const val = getSeasonalCounts(site.id, year1).june1;
-                        return val !== null ? sum + val : sum;
-                      }, 0),
-                      june2: sitesToInclude.reduce((sum, site) => {
-                        const val = getSeasonalCounts(site.id, year1).june2;
-                        return val !== null ? sum + val : sum;
-                      }, 0),
-                      julyAug1: sitesToInclude.reduce((sum, site) => {
-                        const val = getSeasonalCounts(site.id, year1).julyAug1;
-                        return val !== null ? sum + val : sum;
-                      }, 0),
-                      julyAug2: sitesToInclude.reduce((sum, site) => {
-                        const val = getSeasonalCounts(site.id, year1).julyAug2;
-                        return val !== null ? sum + val : sum;
-                      }, 0)
-                    };
-                    const aggregatedS2 = {
-                      june1: sitesToInclude.reduce((sum, site) => {
-                        const val = getSeasonalCounts(site.id, year2).june1;
-                        return val !== null ? sum + val : sum;
-                      }, 0),
-                      june2: sitesToInclude.reduce((sum, site) => {
-                        const val = getSeasonalCounts(site.id, year2).june2;
-                        return val !== null ? sum + val : sum;
-                      }, 0),
-                      julyAug1: sitesToInclude.reduce((sum, site) => {
-                        const val = getSeasonalCounts(site.id, year2).julyAug1;
-                        return val !== null ? sum + val : sum;
-                      }, 0),
-                      julyAug2: sitesToInclude.reduce((sum, site) => {
-                        const val = getSeasonalCounts(site.id, year2).julyAug2;
-                        return val !== null ? sum + val : sum;
-                      }, 0)
-                    };
-                    return (
-                      <SiteChart
-                        key="all-properties"
-                        site={{ id: 'all', name: 'All Properties Combined' }}
-                        s1={aggregatedS1}
-                        s2={aggregatedS2}
-                      />
-                    );
-                  })()
-                ) : (
-                  // Individual charts per roost site for single property
-                  sitesToInclude.map(site => {
-                    const s1 = getSeasonalCounts(site.id, year1);
-                    const s2 = getSeasonalCounts(site.id, year2);
-                    return <SiteChart key={site.id} site={site} s1={s1} s2={s2} />;
-                  })
-                )}
               </>
             )}
 
