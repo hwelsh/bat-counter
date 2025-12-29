@@ -3339,14 +3339,6 @@
 
         return (
           <div>
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-              <button onClick={() => setView('reports')} style={{ ...styles.button, ...styles.buttonSecondary }}>
-                📊 Back to Reports
-              </button>
-              <button onClick={() => setView('home')} style={{ ...styles.button, ...styles.buttonSecondary }}>
-                ← Back to Home
-              </button>
-            </div>
             <h1 style={{ fontSize: '28px', fontWeight: '600', color: colors.forest, marginBottom: '24px', textAlign: 'center' }}>
               📊 Impact Report
             </h1>
@@ -3664,14 +3656,6 @@
 
         return (
           <div>
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-              <button onClick={() => setView('reports')} style={{ ...styles.button, ...styles.buttonSecondary }}>
-                📊 Back to Reports
-              </button>
-              <button onClick={() => setView('home')} style={{ ...styles.button, ...styles.buttonSecondary }}>
-                ← Back to Home
-              </button>
-            </div>
             <h1 style={{ fontSize: '28px', fontWeight: '600', color: colors.forest, marginBottom: '24px', textAlign: 'center' }}>
               📈 Year-over-Year Comparison
             </h1>
@@ -4244,14 +4228,6 @@
 
         return (
           <div>
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-              <button onClick={() => setView('appSettings')} style={{ ...styles.button, ...styles.buttonSecondary }}>
-                ⚙️ Back to Settings
-              </button>
-              <button onClick={() => setView('home')} style={{ ...styles.button, ...styles.buttonSecondary }}>
-                ← Back to Home
-              </button>
-            </div>
             <div style={styles.card}>
               <h2 style={styles.cardTitle}>🚗 Mileage Report</h2>
 
@@ -4408,7 +4384,24 @@
               </a>
             </div>
             {view !== 'home' && (
-              <button onClick={() => setView('home')} style={{ ...styles.navButton, ...styles.navButtonSecondary }}>← Back to Home</button>
+              <button
+                onClick={() => {
+                  if (view === 'impactReport' || view === 'yearComparison') {
+                    setView('reports');
+                  } else if (view === 'mileage') {
+                    setView('appSettings');
+                  } else {
+                    setView('home');
+                  }
+                }}
+                style={{ ...styles.navButton, ...styles.navButtonSecondary }}
+              >
+                {view === 'impactReport' || view === 'yearComparison'
+                  ? '← Back to Reports'
+                  : view === 'mileage'
+                    ? '← Back to Settings'
+                    : '← Back to Home'}
+              </button>
             )}
           </header>
 
