@@ -776,8 +776,9 @@
             : `${Math.min(...uniqueYears)}-${Math.max(...uniqueYears)}`)
           : '—';
         
-        // Volunteer hours calculation (duration × volunteer count per session)
-        const totalVolunteerHours = counts.reduce((sum, c) => {
+        // This year's stats
+        const thisYearCountSessions = thisYearCounts.length;
+        const thisYearVolunteerHours = thisYearCounts.reduce((sum, c) => {
           if (!c.startTime || !c.endTime) return sum;
           const [startH, startM] = c.startTime.split(':').map(Number);
           const [endH, endM] = c.endTime.split(':').map(Number);
@@ -942,27 +943,24 @@
               </div>
             </div>
 
-            <h2 style={{ fontSize: '20px', fontWeight: '600', color: colors.forest, marginBottom: '16px', marginTop: '8px' }}>📈 Impact</h2>
+            <h2 style={{ fontSize: '20px', fontWeight: '600', color: colors.forest, marginBottom: '16px', marginTop: '8px' }}>📈 {currentYear} Impact</h2>
             <div style={styles.summaryGrid}>
               <div style={styles.summaryCard}>
-                <div style={styles.summaryNumber}>{yearsActiveCount}</div>
-                <div style={styles.summaryLabel}>BC Annual Bat Counts</div>
+                <div style={styles.summaryNumber}>{thisYearCountSessions}</div>
+                <div style={styles.summaryLabel}>Count Sessions</div>
               </div>
               <div style={styles.summaryCard}>
-                <div style={styles.summaryNumber}>{totalBatsAllTime.toLocaleString()}</div>
+                <div style={styles.summaryNumber}>{totalBatsThisYear.toLocaleString()}</div>
                 <div style={styles.summaryLabel}>Bats Counted</div>
               </div>
               <div style={styles.summaryCard}>
-                <div style={styles.summaryNumber}>{totalVolunteerHours > 0 ? Math.round(totalVolunteerHours) : '—'}</div>
+                <div style={styles.summaryNumber}>{thisYearVolunteerHours > 0 ? Math.round(thisYearVolunteerHours) : '—'}</div>
                 <div style={styles.summaryLabel}>Volunteer Hours</div>
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
-              <button onClick={() => setView('impactReport')} style={{ ...styles.button, ...styles.buttonSecondary }}>
-                📊 Impact Report
-              </button>
-              <button onClick={() => setView('yearComparison')} style={{ ...styles.button, ...styles.buttonSecondary }}>
-                📈 Year Comparison
+              <button onClick={() => setView('reports')} style={{ ...styles.button, ...styles.buttonSecondary }}>
+                📊 Reports
               </button>
             </div>
 
@@ -2938,6 +2936,214 @@
         );
       };
 
+      // ============ REPORTS PAGE ============
+      const ReportsView = () => {
+        const currentYear = new Date().getFullYear();
+        const availableYears = getAvailableYears();
+        const [selectedSeasonYear, setSelectedSeasonYear] = useState(currentYear);
+
+        // Get season data for the selected year
+        const seasonYearCounts = counts.filter(c => new Date(c.date).getFullYear() === selectedSeasonYear);
+
+        // Calculate stats for selected season
+        const seasonTotalBats = seasonYearCounts.reduce((sum, c) => sum + (parseInt(c.counter1Total) || 0), 0);
+        const seasonCountSessions = seasonYearCounts.length;
+        const seasonVolunteerHours = seasonYearCounts.reduce((sum, c) => {
+          if (!c.startTime || !c.endTime) return sum;
+          const [startH, startM] = c.startTime.split(':').map(Number);
+          const [endH, endM] = c.endTime.split(':').map(Number);
+          const durationHours = (endH + endM/60) - (startH + startM/60);
+          const volunteers = parseInt(c.volunteerCount) || 1;
+          return sum + (durationHours > 0 ? durationHours * volunteers : 0);
+        }, 0);
+
+        // Get properties with counts this season
+        const seasonPropertyIds = [...new Set(seasonYearCounts.map(c => {
+          const site = sites.find(s => s.id === c.siteId);
+          return site?.propertyId;
+        }).filter(Boolean))];
+
+        // All-time stats
+        const totalBatsAllTime = counts.reduce((sum, c) => sum + (parseInt(c.counter1Total) || 0), 0);
+        const totalCountSessions = counts.length;
+        const uniqueYears = [...new Set(counts.map(c => new Date(c.date).getFullYear()))];
+        const yearsActiveCount = uniqueYears.length;
+        const totalVolunteerHours = counts.reduce((sum, c) => {
+          if (!c.startTime || !c.endTime) return sum;
+          const [startH, startM] = c.startTime.split(':').map(Number);
+          const [endH, endM] = c.endTime.split(':').map(Number);
+          const durationHours = (endH + endM/60) - (startH + startM/60);
+          const volunteers = parseInt(c.volunteerCount) || 1;
+          return sum + (durationHours > 0 ? durationHours * volunteers : 0);
+        }, 0);
+
+        return (
+          <div>
+            <h1 style={{ fontSize: '28px', fontWeight: '600', color: colors.forest, marginBottom: '24px', textAlign: 'center' }}>
+              📊 Reports
+            </h1>
+
+            {/* Overall Impact Section */}
+            <div style={styles.card}>
+              <h2 style={styles.cardTitle}>🏆 Overall Impact</h2>
+              <p style={{ color: colors.textLight, marginBottom: '16px' }}>
+                Your cumulative contribution to the BC Annual Bat Count program.
+              </p>
+              <div style={styles.summaryGrid}>
+                <div style={styles.summaryCard}>
+                  <div style={styles.summaryNumber}>{yearsActiveCount}</div>
+                  <div style={styles.summaryLabel}>Years Active</div>
+                </div>
+                <div style={styles.summaryCard}>
+                  <div style={styles.summaryNumber}>{totalCountSessions}</div>
+                  <div style={styles.summaryLabel}>Count Sessions</div>
+                </div>
+                <div style={styles.summaryCard}>
+                  <div style={styles.summaryNumber}>{totalBatsAllTime.toLocaleString()}</div>
+                  <div style={styles.summaryLabel}>Bats Counted</div>
+                </div>
+                <div style={styles.summaryCard}>
+                  <div style={styles.summaryNumber}>{totalVolunteerHours > 0 ? Math.round(totalVolunteerHours) : '—'}</div>
+                  <div style={styles.summaryLabel}>Volunteer Hours</div>
+                </div>
+              </div>
+              <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                <button onClick={() => setView('impactReport')} style={{ ...styles.button, ...styles.buttonSecondary }}>
+                  View Detailed Impact Report →
+                </button>
+              </div>
+            </div>
+
+            {/* Year Comparison Section */}
+            <div style={styles.card}>
+              <h2 style={styles.cardTitle}>📈 Year-over-Year Comparison</h2>
+              <p style={{ color: colors.textLight, marginBottom: '16px' }}>
+                Compare bat counts and trends between different years with visual charts.
+              </p>
+              {availableYears.length < 2 ? (
+                <div style={styles.emptyState}>
+                  <p>Need data from at least 2 years to compare.</p>
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center' }}>
+                  <button onClick={() => setView('yearComparison')} style={{ ...styles.button, ...styles.buttonPrimary }}>
+                    Open Year Comparison →
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Season Viewer Section */}
+            <div style={styles.card}>
+              <h2 style={styles.cardTitle}>📅 Season Viewer</h2>
+              <p style={{ color: colors.textLight, marginBottom: '16px' }}>
+                Review data from any past counting season.
+              </p>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={styles.label}>Select Season</label>
+                <select
+                  value={selectedSeasonYear}
+                  onChange={(e) => setSelectedSeasonYear(parseInt(e.target.value))}
+                  style={{ ...styles.select, width: 'auto', minWidth: '150px' }}
+                >
+                  {[...new Set([currentYear, ...availableYears])].sort((a, b) => b - a).map(y => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </div>
+
+              {seasonYearCounts.length === 0 ? (
+                <div style={styles.emptyState}>
+                  <p>No count data for {selectedSeasonYear}.</p>
+                </div>
+              ) : (
+                <>
+                  {/* Season Summary */}
+                  <div style={styles.summaryGrid}>
+                    <div style={styles.summaryCard}>
+                      <div style={styles.summaryNumber}>{seasonCountSessions}</div>
+                      <div style={styles.summaryLabel}>Count Sessions</div>
+                    </div>
+                    <div style={styles.summaryCard}>
+                      <div style={styles.summaryNumber}>{seasonTotalBats.toLocaleString()}</div>
+                      <div style={styles.summaryLabel}>Bats Counted</div>
+                    </div>
+                    <div style={styles.summaryCard}>
+                      <div style={styles.summaryNumber}>{seasonVolunteerHours > 0 ? Math.round(seasonVolunteerHours) : '—'}</div>
+                      <div style={styles.summaryLabel}>Volunteer Hours</div>
+                    </div>
+                    <div style={styles.summaryCard}>
+                      <div style={styles.summaryNumber}>{seasonPropertyIds.length}</div>
+                      <div style={styles.summaryLabel}>Properties Counted</div>
+                    </div>
+                  </div>
+
+                  {/* Season Counts by Property */}
+                  <h3 style={{ fontSize: '18px', color: colors.forest, marginTop: '24px', marginBottom: '12px' }}>
+                    Counts by Property
+                  </h3>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={styles.table}>
+                      <thead>
+                        <tr>
+                          <th style={styles.th}>Property</th>
+                          <th style={styles.th}>Site</th>
+                          <th style={{ ...styles.th, textAlign: 'center' }}>Count #1</th>
+                          <th style={{ ...styles.th, textAlign: 'center' }}>Count #2</th>
+                          <th style={{ ...styles.th, textAlign: 'center' }}>Count #3</th>
+                          <th style={{ ...styles.th, textAlign: 'center' }}>Count #4</th>
+                          <th style={{ ...styles.th, textAlign: 'center' }}>Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {properties.map(property => {
+                          const propertySites = sites.filter(s => s.propertyId === property.id);
+                          return propertySites.map((site, siteIdx) => {
+                            const siteData = getSeasonData(property.id, selectedSeasonYear).find(d => d.site.id === site.id);
+                            if (!siteData) return null;
+
+                            return (
+                              <tr key={site.id}>
+                                {siteIdx === 0 && (
+                                  <td style={{ ...styles.td, fontWeight: '600' }} rowSpan={propertySites.length}>
+                                    {property.name}
+                                  </td>
+                                )}
+                                <td style={styles.td}>{site.name}</td>
+                                <td style={{ ...styles.td, textAlign: 'center' }}>
+                                  {siteData.june1 ? getCountTotal(siteData.june1) : '—'}
+                                </td>
+                                <td style={{ ...styles.td, textAlign: 'center' }}>
+                                  {siteData.june2 ? getCountTotal(siteData.june2) : '—'}
+                                </td>
+                                <td style={{ ...styles.td, textAlign: 'center' }}>
+                                  {siteData.julyAug1 ? getCountTotal(siteData.julyAug1) : '—'}
+                                </td>
+                                <td style={{ ...styles.td, textAlign: 'center' }}>
+                                  {siteData.julyAug2 ? getCountTotal(siteData.julyAug2) : '—'}
+                                </td>
+                                <td style={{ ...styles.td, textAlign: 'center', fontWeight: 'bold' }}>
+                                  {siteData.totalBats}
+                                </td>
+                              </tr>
+                            );
+                          });
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <button onClick={() => setView('home')} style={{ ...styles.button, ...styles.buttonSecondary, marginTop: '16px' }}>
+              ← Back to Home
+            </button>
+          </div>
+        );
+      };
+
       // ============ IMPACT REPORT VIEW ============
       const ImpactReportView = () => {
         const currentYear = new Date().getFullYear();
@@ -4069,6 +4275,7 @@
           {view === 'home' && <HomeView />}
           {view === 'settings' && <SettingsView />}
           {view === 'appSettings' && <AppSettingsView />}
+          {view === 'reports' && <ReportsView />}
           {view === 'impactReport' && <ImpactReportView />}
           {view === 'yearComparison' && <YearComparisonView />}
           {view === 'mileage' && <MileageReportView />}
