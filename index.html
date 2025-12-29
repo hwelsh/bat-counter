@@ -908,29 +908,31 @@
             )}
 
             {/* Main Action Buttons */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
               <button
                 onClick={() => { setCountForm({ date: new Date().toISOString().split('T')[0] }); setView('newCount'); }}
-                style={{ ...styles.button, ...styles.buttonPrimary, padding: '20px 16px', fontSize: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}
+                style={{ ...styles.button, ...styles.buttonPrimary, padding: '24px 48px', fontSize: '18px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}
                 disabled={sites.length === 0}
               >
-                <span style={{ fontSize: '28px' }}>🦇</span>
+                <span style={{ fontSize: '36px' }}>🦇</span>
                 <span>New Counting Session</span>
               </button>
-              <button
-                onClick={() => setView('history')}
-                style={{ ...styles.button, ...styles.buttonSecondary, padding: '20px 16px', fontSize: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}
-              >
-                <span style={{ fontSize: '28px' }}>📓</span>
-                <span>Counting Session Log</span>
-              </button>
-              <button
-                onClick={() => setView('appSettings')}
-                style={{ ...styles.button, ...styles.buttonSecondary, padding: '20px 16px', fontSize: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}
-              >
-                <span style={{ fontSize: '28px' }}>⚙️</span>
-                <span>Settings</span>
-              </button>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                <button
+                  onClick={() => setView('history')}
+                  style={{ ...styles.button, ...styles.buttonSecondary, padding: '16px 24px', fontSize: '15px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}
+                >
+                  <span style={{ fontSize: '24px' }}>📓</span>
+                  <span>Counting Session Log</span>
+                </button>
+                <button
+                  onClick={() => setView('appSettings')}
+                  style={{ ...styles.button, ...styles.buttonSecondary, padding: '16px 24px', fontSize: '15px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}
+                >
+                  <span style={{ fontSize: '24px' }}>⚙️</span>
+                  <span>Settings</span>
+                </button>
+              </div>
             </div>
 
             <h2 style={{ fontSize: '20px', fontWeight: '600', color: colors.forest, marginBottom: '16px', marginTop: '8px' }}>📈 Impact</h2>
