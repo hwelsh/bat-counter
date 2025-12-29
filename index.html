@@ -3408,6 +3408,15 @@
                 />
               </div>
             </div>
+
+            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+              <button onClick={() => setView('reports')} style={{ ...styles.button, ...styles.buttonSecondary }}>
+                📊 Back to Reports
+              </button>
+              <button onClick={() => setView('home')} style={{ ...styles.button, ...styles.buttonSecondary }}>
+                ← Back to Home
+              </button>
+            </div>
           </div>
         );
       };
@@ -4123,7 +4132,10 @@
               </>
             )}
 
-            <div style={{ marginTop: '24px' }}>
+            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+              <button onClick={() => setView('reports')} style={{ ...styles.button, ...styles.buttonSecondary }}>
+                📊 Back to Reports
+              </button>
               <button onClick={() => setView('home')} style={{ ...styles.button, ...styles.buttonSecondary }}>
                 ← Back to Home
               </button>
@@ -4364,7 +4376,14 @@
               )}
             </div>
 
-            <button onClick={() => setView('home')} style={{ ...styles.button, ...styles.buttonSecondary }}>← Back to Home</button>
+            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+              <button onClick={() => setView('appSettings')} style={{ ...styles.button, ...styles.buttonSecondary }}>
+                ⚙️ Back to Settings
+              </button>
+              <button onClick={() => setView('home')} style={{ ...styles.button, ...styles.buttonSecondary }}>
+                ← Back to Home
+              </button>
+            </div>
           </div>
         );
       };
