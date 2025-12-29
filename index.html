@@ -3406,12 +3406,16 @@
         const mostVolunteers = filteredCounts.length > 0
           ? Math.max(...filteredCounts.map(c => parseInt(c.volunteerCount) || 1))
           : 0;
+        const mostVolunteersRecord = filteredCounts.find(c => (parseInt(c.volunteerCount) || 1) === mostVolunteers);
+        const mostVolunteersSite = mostVolunteersRecord ? sites.find(s => s.id === mostVolunteersRecord.siteId) : null;
+        const mostVolunteersProperty = mostVolunteersSite ? properties.find(p => p.id === mostVolunteersSite.propertyId) : null;
 
         // Greatest seasonal growth by property
         const getPropertySeasonalGrowth = () => {
           let bestProperty = null;
           let bestGrowth = 0;
           let bestPercent = 0;
+          let bestYear = null;
 
           // Group by property and year
           const propertyYearData = {};
@@ -3467,10 +3471,11 @@
               bestGrowth = growth;
               bestProperty = data.property;
               bestPercent = percentGrowth;
+              bestYear = data.year;
             }
           });
 
-          return { property: bestProperty, growth: bestGrowth, percent: bestPercent };
+          return { property: bestProperty, growth: bestGrowth, percent: bestPercent, year: bestYear };
         };
 
         const seasonalGrowth = getPropertySeasonalGrowth();
@@ -3555,20 +3560,21 @@
                 <StatCard
                   value={highestSingleCount}
                   label="Highest Single Count"
-                  subtext={highestCountProperty ? `${highestCountProperty.name}` : ''}
+                  subtext={highestCountRecord ? `${formatDate(highestCountRecord.date)}${highestCountProperty ? ` · ${highestCountProperty.name}` : ''}` : ''}
                   tooltip="The highest number of bats counted in a single counting session at any roost site."
                   emoji="🏅"
                 />
                 <StatCard
                   value={seasonalGrowth.growth > 0 ? `+${seasonalGrowth.growth}` : '—'}
                   label="Greatest Seasonal Growth"
-                  subtext={seasonalGrowth.property ? `+${seasonalGrowth.percent}% · ${seasonalGrowth.property.name}` : ''}
+                  subtext={seasonalGrowth.property ? `${seasonalGrowth.year} · +${seasonalGrowth.percent}% · ${seasonalGrowth.property.name}` : ''}
                   tooltip="Compares the lowest count from June (counts 1-2) to the highest count from July/August (counts 3-4) for each property, combining all roost sites. Shows the property with the greatest increase."
                   emoji="📈"
                 />
                 <StatCard
                   value={mostVolunteers}
                   label="Most Volunteers"
+                  subtext={mostVolunteersRecord ? `${formatDate(mostVolunteersRecord.date)}${mostVolunteersProperty ? ` · ${mostVolunteersProperty.name}` : ''}` : ''}
                   tooltip="The highest number of volunteers participating in a single counting session."
                   emoji="👥"
                 />
