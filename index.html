@@ -3249,6 +3249,7 @@
         const getPropertySeasonalGrowth = () => {
           let bestProperty = null;
           let bestGrowth = 0;
+          let bestPercent = 0;
 
           // Group by property and year
           const propertyYearData = {};
@@ -3298,14 +3299,16 @@
             const juneMin = Math.min(...juneTotals);
             const julyAugMax = Math.max(...julyAugTotals);
             const growth = julyAugMax - juneMin;
+            const percentGrowth = juneMin > 0 ? Math.round((growth / juneMin) * 100) : 0;
 
             if (growth > bestGrowth) {
               bestGrowth = growth;
               bestProperty = data.property;
+              bestPercent = percentGrowth;
             }
           });
 
-          return { property: bestProperty, growth: bestGrowth };
+          return { property: bestProperty, growth: bestGrowth, percent: bestPercent };
         };
 
         const seasonalGrowth = getPropertySeasonalGrowth();
@@ -3389,7 +3392,7 @@
                 <StatCard
                   value={seasonalGrowth.growth > 0 ? `+${seasonalGrowth.growth}` : '—'}
                   label="Greatest Seasonal Growth"
-                  subtext={seasonalGrowth.property ? `${seasonalGrowth.property.name}` : ''}
+                  subtext={seasonalGrowth.property ? `+${seasonalGrowth.percent}% · ${seasonalGrowth.property.name}` : ''}
                 />
                 <StatCard value={mostVolunteers} label="Most Volunteers" />
               </div>
