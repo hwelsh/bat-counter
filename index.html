@@ -2939,30 +2939,7 @@
 
       // ============ REPORTS PAGE ============
       const ReportsView = () => {
-        const currentYear = new Date().getFullYear();
         const availableYears = getAvailableYears();
-        const [selectedSeasonYear, setSelectedSeasonYear] = useState(currentYear);
-
-        // Get season data for the selected year
-        const seasonYearCounts = counts.filter(c => new Date(c.date).getFullYear() === selectedSeasonYear);
-
-        // Calculate stats for selected season
-        const seasonTotalBats = seasonYearCounts.reduce((sum, c) => sum + (parseInt(c.counter1Total) || 0), 0);
-        const seasonCountingNights = [...new Set(seasonYearCounts.map(c => c.date))].length;
-        const seasonVolunteerHours = seasonYearCounts.reduce((sum, c) => {
-          if (!c.startTime || !c.endTime) return sum;
-          const [startH, startM] = c.startTime.split(':').map(Number);
-          const [endH, endM] = c.endTime.split(':').map(Number);
-          const durationHours = (endH + endM/60) - (startH + startM/60);
-          const volunteers = parseInt(c.volunteerCount) || 1;
-          return sum + (durationHours > 0 ? durationHours * volunteers : 0);
-        }, 0);
-
-        // Get properties with counts this season
-        const seasonPropertyIds = [...new Set(seasonYearCounts.map(c => {
-          const site = sites.find(s => s.id === c.siteId);
-          return site?.propertyId;
-        }).filter(Boolean))];
 
         // All-time stats
         const totalBatsAllTime = counts.reduce((sum, c) => sum + (parseInt(c.counter1Total) || 0), 0);
@@ -3038,11 +3015,107 @@
             <div style={styles.card}>
               <h2 style={styles.cardTitle}>📅 Season Viewer</h2>
               <p style={{ color: colors.textLight, marginBottom: '16px' }}>
-                Review data from any past counting season.
+                Review data from any past counting season with calendar view and detailed breakdowns.
               </p>
+              <div style={{ textAlign: 'center' }}>
+                <button onClick={() => setView('seasonViewer')} style={{ ...styles.button, ...styles.buttonPrimary }}>
+                  Open Season Viewer →
+                </button>
+              </div>
+            </div>
 
-              <div style={{ marginBottom: '20px' }}>
-                <label style={styles.label}>Select Season</label>
+            <button onClick={() => setView('home')} style={{ ...styles.button, ...styles.buttonSecondary, marginTop: '16px' }}>
+              ← Back to Home
+            </button>
+          </div>
+        );
+      };
+
+      // ============ SEASON VIEWER VIEW ============
+      const SeasonViewerView = () => {
+        const currentYear = new Date().getFullYear();
+        const availableYears = getAvailableYears();
+        const [selectedSeasonYear, setSelectedSeasonYear] = useState(currentYear);
+
+        // Get season data for the selected year
+        const seasonYearCounts = counts.filter(c => new Date(c.date).getFullYear() === selectedSeasonYear);
+
+        // Calculate stats for selected season
+        const seasonTotalBats = seasonYearCounts.reduce((sum, c) => sum + (parseInt(c.counter1Total) || 0), 0);
+        const seasonCountingNights = [...new Set(seasonYearCounts.map(c => c.date))].length;
+        const seasonVolunteerHours = seasonYearCounts.reduce((sum, c) => {
+          if (!c.startTime || !c.endTime) return sum;
+          const [startH, startM] = c.startTime.split(':').map(Number);
+          const [endH, endM] = c.endTime.split(':').map(Number);
+          const durationHours = (endH + endM/60) - (startH + startM/60);
+          const volunteers = parseInt(c.volunteerCount) || 1;
+          return sum + (durationHours > 0 ? durationHours * volunteers : 0);
+        }, 0);
+
+        // Get properties with counts this season
+        const seasonPropertyIds = [...new Set(seasonYearCounts.map(c => {
+          const site = sites.find(s => s.id === c.siteId);
+          return site?.propertyId;
+        }).filter(Boolean))];
+
+        // Get unique counting dates for calendar
+        const countingDates = [...new Set(seasonYearCounts.map(c => c.date))];
+
+        // Calendar component for a single month
+        const MonthCalendar = ({ year, month, monthName }) => {
+          const firstDay = new Date(year, month, 1).getDay();
+          const daysInMonth = new Date(year, month + 1, 0).getDate();
+          const days = [];
+
+          // Empty cells for days before the 1st
+          for (let i = 0; i < firstDay; i++) {
+            days.push(<div key={`empty-${i}`} style={{ padding: '8px' }}></div>);
+          }
+
+          // Days of the month
+          for (let day = 1; day <= daysInMonth; day++) {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const hasCount = countingDates.includes(dateStr);
+            days.push(
+              <div
+                key={day}
+                style={{
+                  padding: '8px',
+                  textAlign: 'center',
+                  backgroundColor: hasCount ? colors.primary : 'transparent',
+                  color: hasCount ? 'white' : colors.text,
+                  borderRadius: '4px',
+                  fontWeight: hasCount ? '600' : 'normal',
+                }}
+                title={hasCount ? `Counting session on ${dateStr}` : ''}
+              >
+                {day}
+              </div>
+            );
+          }
+
+          return (
+            <div style={{ flex: '1', minWidth: '200px' }}>
+              <h4 style={{ textAlign: 'center', marginBottom: '8px', color: colors.forest }}>{monthName}</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', fontSize: '14px' }}>
+                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
+                  <div key={d} style={{ padding: '4px', textAlign: 'center', fontWeight: '600', color: colors.sage, fontSize: '12px' }}>{d}</div>
+                ))}
+                {days}
+              </div>
+            </div>
+          );
+        };
+
+        return (
+          <div>
+            <h1 style={{ fontSize: '28px', fontWeight: '600', color: colors.forest, marginBottom: '24px', textAlign: 'center' }}>
+              📅 Season Viewer
+            </h1>
+
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+              <div>
+                <label style={{ ...styles.label, fontSize: '16px' }}>Season</label>
                 <select
                   value={selectedSeasonYear}
                   onChange={(e) => setSelectedSeasonYear(parseInt(e.target.value))}
@@ -3053,15 +3126,18 @@
                   ))}
                 </select>
               </div>
+            </div>
 
-              {seasonYearCounts.length === 0 ? (
-                <div style={styles.emptyState}>
-                  <p>No count data for {selectedSeasonYear}.</p>
-                </div>
-              ) : (
-                <>
-                  {/* Season Summary */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '16px' }}>
+            {seasonYearCounts.length === 0 ? (
+              <div style={styles.emptyState}>
+                <p>No count data for {selectedSeasonYear}.</p>
+              </div>
+            ) : (
+              <>
+                {/* Season Summary */}
+                <div style={styles.card}>
+                  <h2 style={styles.cardTitle}>📊 Season Summary</h2>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
                     <div style={styles.summaryCard}>
                       <div style={styles.summaryNumber}>{seasonCountingNights}</div>
                       <div style={styles.summaryLabel}>Counting Nights</div>
@@ -3079,11 +3155,25 @@
                       <div style={styles.summaryLabel}>Properties Counted</div>
                     </div>
                   </div>
+                </div>
 
-                  {/* Season Counts by Property */}
-                  <h3 style={{ fontSize: '18px', color: colors.forest, marginTop: '24px', marginBottom: '12px' }}>
-                    Counts by Property
-                  </h3>
+                {/* Calendar View */}
+                <div style={styles.card}>
+                  <h2 style={styles.cardTitle}>🗓️ Counting Calendar</h2>
+                  <p style={{ color: colors.textLight, marginBottom: '16px' }}>
+                    Dates with counting sessions are highlighted.
+                  </p>
+                  <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                    <MonthCalendar year={selectedSeasonYear} month={4} monthName="May" />
+                    <MonthCalendar year={selectedSeasonYear} month={5} monthName="June" />
+                    <MonthCalendar year={selectedSeasonYear} month={6} monthName="July" />
+                    <MonthCalendar year={selectedSeasonYear} month={7} monthName="August" />
+                  </div>
+                </div>
+
+                {/* Season Counts by Property */}
+                <div style={styles.card}>
+                  <h2 style={styles.cardTitle}>🦇 Counts by Property</h2>
                   <div style={{ overflowX: 'auto' }}>
                     <table style={styles.table}>
                       <thead>
@@ -3134,13 +3224,9 @@
                       </tbody>
                     </table>
                   </div>
-                </>
-              )}
-            </div>
-
-            <button onClick={() => setView('home')} style={{ ...styles.button, ...styles.buttonSecondary, marginTop: '16px' }}>
-              ← Back to Home
-            </button>
+                </div>
+              </>
+            )}
           </div>
         );
       };
@@ -4387,7 +4473,7 @@
             {view !== 'home' && (
               <button
                 onClick={() => {
-                  if (view === 'impactReport' || view === 'yearComparison') {
+                  if (view === 'impactReport' || view === 'yearComparison' || view === 'seasonViewer') {
                     setView('reports');
                   } else if (view === 'mileage') {
                     setView('appSettings');
@@ -4397,7 +4483,7 @@
                 }}
                 style={{ ...styles.navButton, ...styles.navButtonSecondary }}
               >
-                {view === 'impactReport' || view === 'yearComparison'
+                {view === 'impactReport' || view === 'yearComparison' || view === 'seasonViewer'
                   ? '← Back to Reports'
                   : view === 'mileage'
                     ? '← Back to Settings'
@@ -4412,6 +4498,7 @@
           {view === 'reports' && <ReportsView />}
           {view === 'impactReport' && <ImpactReportView />}
           {view === 'yearComparison' && <YearComparisonView />}
+          {view === 'seasonViewer' && <SeasonViewerView />}
           {view === 'mileage' && <MileageReportView />}
           {view === 'properties' && <PropertiesView />}
           {view === 'editProperty' && <EditPropertyView />}
