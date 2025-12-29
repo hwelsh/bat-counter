@@ -615,17 +615,18 @@
       };
 
       // Season view helpers
+      // Uses soft date cutoffs to assign counts to early/late season
+      // This ensures counts slightly outside official windows still get included
       const getSeasonSlot = (dateStr) => {
         if (!dateStr) return null;
         const date = new Date(dateStr + 'T00:00:00');
-        const month = date.getMonth(); // 0-indexed
-        const day = date.getDate();
-        
-        // June 1-21 = slots 0, 1
-        if (month === 5 && day >= 1 && day <= 21) return 'june';
-        // July 11 - Aug 5 = slots 2, 3
-        if ((month === 6 && day >= 11) || (month === 7 && day >= 1 && day <= 5)) return 'julyAug';
-        // Outside official windows
+        const month = date.getMonth(); // 0-indexed (0=Jan, 5=June, 6=July, 7=Aug)
+
+        // May 1 - June 30 = early season (counts 1-2)
+        if (month >= 4 && month <= 5) return 'june';
+        // July 1 - Aug 31 = late season (counts 3-4)
+        if (month >= 6 && month <= 7) return 'julyAug';
+        // Outside bat counting season
         return 'other';
       };
 
