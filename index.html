@@ -46,46 +46,55 @@
 
       /* Page title - smaller for print */
       h1 {
-        font-size: 20pt !important;
-        margin-bottom: 12px !important;
+        font-size: 18pt !important;
+        margin-bottom: 8px !important;
+        margin-top: 0 !important;
       }
 
       h2 {
-        font-size: 14pt !important;
-        margin-bottom: 8px !important;
+        font-size: 12pt !important;
+        margin-bottom: 4px !important;
+        margin-top: 0 !important;
       }
 
-      /* Cards - keep together, reduce padding */
+      /* Cards - keep together, minimal padding */
       #root div[style*="border-radius"] {
         break-inside: avoid;
         page-break-inside: avoid;
-        padding: 12px !important;
-        margin-bottom: 12px !important;
+        padding: 8px !important;
+        margin-bottom: 8px !important;
         box-shadow: none !important;
         border: 1px solid #ccc !important;
       }
 
       /* Stat cards grid - tighter spacing */
       div[style*="display: grid"] {
-        gap: 8px !important;
+        gap: 6px !important;
       }
 
       /* Stat card numbers - smaller */
       div[style*="font-size: 36px"],
       div[style*="font-size: 32px"],
       div[style*="font-size: 28px"] {
-        font-size: 20pt !important;
+        font-size: 16pt !important;
+        margin-bottom: 2px !important;
       }
 
       /* Stat card labels */
       div[style*="font-size: 14px"] {
-        font-size: 9pt !important;
+        font-size: 8pt !important;
+      }
+
+      /* Subtext under stats */
+      div[style*="font-size: 12px"] {
+        font-size: 7pt !important;
+        margin-top: 1px !important;
       }
 
       /* Emoji decorations - smaller */
       div[style*="font-size: 24px"] {
-        font-size: 14pt !important;
-        margin-top: 2px !important;
+        font-size: 12pt !important;
+        margin-top: 1px !important;
       }
 
       /* Tables - compact */
@@ -109,16 +118,17 @@
       /* Print header styling */
       .print-header {
         text-align: center;
-        margin-bottom: 16px !important;
-        padding-bottom: 12px !important;
-        border-bottom: 2px solid #1a3c34;
+        margin-bottom: 10px !important;
+        padding-bottom: 8px !important;
+        border-bottom: 1px solid #1a3c34;
       }
       .print-header h1 {
-        font-size: 16pt !important;
-        margin: 0 0 4px 0 !important;
+        font-size: 14pt !important;
+        margin: 0 0 2px 0 !important;
       }
       .print-header p {
-        font-size: 10pt !important;
+        font-size: 9pt !important;
+        margin: 0 !important;
       }
 
       /* Page setup */
