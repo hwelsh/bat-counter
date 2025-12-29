@@ -2947,7 +2947,7 @@
 
         // Calculate stats for selected season
         const seasonTotalBats = seasonYearCounts.reduce((sum, c) => sum + (parseInt(c.counter1Total) || 0), 0);
-        const seasonCountSessions = seasonYearCounts.length;
+        const seasonCountingNights = [...new Set(seasonYearCounts.map(c => c.date))].length;
         const seasonVolunteerHours = seasonYearCounts.reduce((sum, c) => {
           if (!c.startTime || !c.endTime) return sum;
           const [startH, startM] = c.startTime.split(':').map(Number);
@@ -2965,7 +2965,7 @@
 
         // All-time stats
         const totalBatsAllTime = counts.reduce((sum, c) => sum + (parseInt(c.counter1Total) || 0), 0);
-        const totalCountSessions = counts.length;
+        const totalCountingNights = [...new Set(counts.map(c => c.date))].length;
         const uniqueYears = [...new Set(counts.map(c => new Date(c.date).getFullYear()))];
         const yearsActiveCount = uniqueYears.length;
         const totalVolunteerHours = counts.reduce((sum, c) => {
@@ -2995,8 +2995,8 @@
                   <div style={styles.summaryLabel}>Years Active</div>
                 </div>
                 <div style={styles.summaryCard}>
-                  <div style={styles.summaryNumber}>{totalCountSessions}</div>
-                  <div style={styles.summaryLabel}>Count Sessions</div>
+                  <div style={styles.summaryNumber}>{totalCountingNights}</div>
+                  <div style={styles.summaryLabel}>Counting Nights</div>
                 </div>
                 <div style={styles.summaryCard}>
                   <div style={styles.summaryNumber}>{totalBatsAllTime.toLocaleString()}</div>
@@ -3062,8 +3062,8 @@
                   {/* Season Summary */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '16px' }}>
                     <div style={styles.summaryCard}>
-                      <div style={styles.summaryNumber}>{seasonCountSessions}</div>
-                      <div style={styles.summaryLabel}>Count Sessions</div>
+                      <div style={styles.summaryNumber}>{seasonCountingNights}</div>
+                      <div style={styles.summaryLabel}>Counting Nights</div>
                     </div>
                     <div style={styles.summaryCard}>
                       <div style={styles.summaryNumber}>{seasonTotalBats.toLocaleString()}</div>
