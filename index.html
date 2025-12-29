@@ -3934,6 +3934,38 @@
                       val2={totals2.maxSingleCount}
                       change={maxChange}
                     />
+                    {/* Population Trend Card */}
+                    <div style={{ ...styles.summaryCard, padding: '16px' }}>
+                      <div style={{ fontSize: '14px', color: colors.textLight, marginBottom: '8px' }}>Population Trend</div>
+                      {totals1.totalBats === 0 && totals2.totalBats === 0 ? (
+                        <div style={{ textAlign: 'center', color: colors.textLight }}>
+                          <div style={{ fontSize: '32px' }}>—</div>
+                          <div style={{ fontSize: '14px', marginTop: '8px' }}>No data to compare</div>
+                        </div>
+                      ) : (
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{
+                            fontSize: '48px',
+                            color: totals2.totalBats > totals1.totalBats ? '#28a745' : totals2.totalBats < totals1.totalBats ? '#dc3545' : colors.textLight
+                          }}>
+                            {totals2.totalBats > totals1.totalBats ? '↑' : totals2.totalBats < totals1.totalBats ? '↓' : '→'}
+                          </div>
+                          <div style={{
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            color: totals2.totalBats > totals1.totalBats ? '#28a745' : totals2.totalBats < totals1.totalBats ? '#dc3545' : colors.textLight
+                          }}>
+                            {totals2.totalBats > totals1.totalBats ? 'Increasing' : totals2.totalBats < totals1.totalBats ? 'Declining' : 'Stable'}
+                          </div>
+                          <div style={{ fontSize: '14px', color: colors.text, marginTop: '8px' }}>
+                            {totals2.totalBats - totals1.totalBats >= 0 ? '+' : ''}{totals2.totalBats - totals1.totalBats} bats ({totalChange.display})
+                          </div>
+                          <div style={{ fontSize: '12px', color: colors.textLight, marginTop: '4px' }}>
+                            {year1} → {year2}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
