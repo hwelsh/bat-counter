@@ -957,13 +957,13 @@
               </button>
             </div>
 
-            {/* Season Progress Indicator */}
-            {properties.length > 0 && (
-              <div style={styles.progressContainer}>
-                <div style={styles.progressTitle}>
-                  <span>🦇</span> {currentYear} Season Progress
-                </div>
-                <div style={styles.progressTrack}>
+            {/* Combined Season Progress Section */}
+            <div style={styles.card}>
+              <h2 style={styles.cardTitle}>🦇 {currentYear} Season Progress</h2>
+
+              {/* Count Progress Circles */}
+              {properties.length > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', flexWrap: 'wrap', marginBottom: '24px' }}>
                   {countPeriods.map((period, idx) => {
                     const progress = getCountProgress(period.num);
                     const progressColor = getProgressColor(progress);
@@ -996,24 +996,7 @@
                     );
                   })}
                 </div>
-              </div>
-            )}
-
-            <div style={styles.card}>
-              <h2 style={styles.cardTitle}>📅 BC Annual Bat Count Schedule</h2>
-              <div style={styles.infoBox}>
-                <strong>Ideally, conduct four counts per summer:</strong>
-                <ul style={{ margin: '10px 0 0 0', paddingLeft: '24px' }}>
-                  <li><strong>June 1–21:</strong> Two counts (before pups can fly)</li>
-                  <li><strong>July 11–August 5:</strong> Two counts (when pups are flying with mothers)</li>
-                </ul>
-                <p style={{ margin: '12px 0 0 0', fontSize: '15px' }}>
-                  Doing all four counts allows us to best compare data from year to year and between sites.
-                </p>
-                <p style={{ margin: '12px 0 0 0', fontSize: '15px', fontStyle: 'italic' }}>
-                  📋 Please return forms to your local coordinator by <strong>September 15</strong>.
-                </p>
-              </div>
+              )}
 
               {/* Season Calendar */}
               {(() => {
@@ -1117,7 +1100,7 @@
                 };
                 
                 return (
-                  <div style={{ marginTop: '24px' }}>
+                  <div>
                     <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
                       {renderMonth(5, 'June')}
                       {renderMonth(6, 'July')}
@@ -1140,6 +1123,21 @@
                   </div>
                 );
               })()}
+
+              {/* Count Schedule Info */}
+              <div style={{ ...styles.infoBox, marginTop: '24px' }}>
+                <strong>Ideally, conduct four counts per summer:</strong>
+                <ul style={{ margin: '10px 0 0 0', paddingLeft: '24px' }}>
+                  <li><strong>June 1–21:</strong> Two counts (before pups can fly)</li>
+                  <li><strong>July 11–August 5:</strong> Two counts (when pups are flying with mothers)</li>
+                </ul>
+                <p style={{ margin: '12px 0 0 0', fontSize: '15px' }}>
+                  Doing all four counts allows us to best compare data from year to year and between sites.
+                </p>
+                <p style={{ margin: '12px 0 0 0', fontSize: '15px', fontStyle: 'italic' }}>
+                  📋 Please return forms to your local coordinator by <strong>September 15</strong>.
+                </p>
+              </div>
             </div>
 
           </div>
