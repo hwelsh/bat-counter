@@ -3478,6 +3478,291 @@
                   )}
                 </div>
 
+                {/* Detailed Season Comparison - when single property selected */}
+                {selectedPropertyId !== 'all' && (() => {
+                  const seasonData = getSeasonData(selectedPropertyId, year2);
+                  const compareData = getSeasonData(selectedPropertyId, year1);
+                  const selectedProperty = properties.find(p => p.id === selectedPropertyId);
+
+                  if (seasonData.length === 0) return null;
+
+                  // Calculate totals
+                  const currentTotal = seasonData.reduce((sum, d) => sum + d.totalBats, 0);
+                  const compareTotal = compareData.reduce((sum, d) => sum + d.totalBats, 0);
+
+                  // For apples-to-apples comparison
+                  const currentHasJune1 = seasonData.some(d => d.june1);
+                  const currentHasJune2 = seasonData.some(d => d.june2);
+                  const currentHasJulyAug1 = seasonData.some(d => d.julyAug1);
+                  const currentHasJulyAug2 = seasonData.some(d => d.julyAug2);
+
+                  const getSlotTotal = (data, slot) => data.reduce((sum, d) => sum + (getCountTotal(d[slot]) || 0), 0);
+
+                  const currentMatchingTotal =
+                    (currentHasJune1 ? getSlotTotal(seasonData, 'june1') : 0) +
+                    (currentHasJune2 ? getSlotTotal(seasonData, 'june2') : 0) +
+                    (currentHasJulyAug1 ? getSlotTotal(seasonData, 'julyAug1') : 0) +
+                    (currentHasJulyAug2 ? getSlotTotal(seasonData, 'julyAug2') : 0);
+
+                  const compareMatchingTotal =
+                    (currentHasJune1 ? getSlotTotal(compareData, 'june1') : 0) +
+                    (currentHasJune2 ? getSlotTotal(compareData, 'june2') : 0) +
+                    (currentHasJulyAug1 ? getSlotTotal(compareData, 'julyAug1') : 0) +
+                    (currentHasJulyAug2 ? getSlotTotal(compareData, 'julyAug2') : 0);
+
+                  const slotsCompared = [currentHasJune1, currentHasJune2, currentHasJulyAug1, currentHasJulyAug2].filter(Boolean).length;
+
+                  const SeasonCompareIndicator = ({ current, previous }) => {
+                    if (current === null || previous === null) return null;
+                    const diff = current - previous;
+                    if (diff > 0) return <span style={{ color: '#2e7d32', marginLeft: '4px', fontSize: '14px' }}>↑</span>;
+                    if (diff < 0) return <span style={{ color: '#dc3545', marginLeft: '4px', fontSize: '14px' }}>↓</span>;
+                    return <span style={{ color: '#888', marginLeft: '4px', fontSize: '14px' }}>→</span>;
+                  };
+
+                  const getCompareValue = (siteId, slot) => {
+                    const siteCompare = compareData.find(d => d.site.id === siteId);
+                    if (!siteCompare) return null;
+                    const count = siteCompare[slot];
+                    return count ? getCountTotal(count) : null;
+                  };
+
+                  const DetailedCountCell = ({ count, siteId, slot }) => {
+                    const total = getCountTotal(count);
+                    const compareValue = getCompareValue(siteId, slot);
+
+                    if (count) {
+                      return (
+                        <td style={{ ...styles.td, textAlign: 'center', backgroundColor: '#f0fff0' }}>
+                          <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                            {total}
+                            <SeasonCompareIndicator current={total} previous={compareValue} />
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#666' }}>{formatDate(count.date).split(',')[0]}</div>
+                        </td>
+                      );
+                    }
+
+                    return (
+                      <td style={{ ...styles.td, textAlign: 'center', backgroundColor: '#f8f8f8' }}>
+                        <div style={{ fontSize: '14px', color: '#999' }}>—</div>
+                      </td>
+                    );
+                  };
+
+                  return (
+                    <div style={styles.card}>
+                      <h2 style={styles.cardTitle}>📊 Detailed Season Comparison – {selectedProperty?.name}</h2>
+
+                      {/* Current Year Table */}
+                      <h3 style={{ fontSize: '20px', color: '#2c5530', marginBottom: '16px' }}>
+                        {year2} Season
+                      </h3>
+
+                      <div style={{ overflowX: 'auto', marginBottom: '24px' }}>
+                        <table style={{ ...styles.table, minWidth: '700px' }}>
+                          <thead>
+                            <tr>
+                              <th style={{ ...styles.th, width: '25%' }}>Roost Site</th>
+                              <th style={{ ...styles.th, textAlign: 'center', width: '15%' }}>Count #1</th>
+                              <th style={{ ...styles.th, textAlign: 'center', width: '15%' }}>Count #2</th>
+                              <th style={{ ...styles.th, textAlign: 'center', width: '15%' }}>Count #3</th>
+                              <th style={{ ...styles.th, textAlign: 'center', width: '15%' }}>Count #4</th>
+                              <th style={{ ...styles.th, textAlign: 'center', width: '15%' }}>Total</th>
+                            </tr>
+                            <tr style={{ backgroundColor: '#f0f0f0' }}>
+                              <td style={{ padding: '8px 12px', fontSize: '12px', color: '#666' }}></td>
+                              <td style={{ padding: '8px 12px', fontSize: '12px', color: '#666', textAlign: 'center' }}>Jun 1-21</td>
+                              <td style={{ padding: '8px 12px', fontSize: '12px', color: '#666', textAlign: 'center' }}>Jun 1-21</td>
+                              <td style={{ padding: '8px 12px', fontSize: '12px', color: '#666', textAlign: 'center' }}>Jul 11-Aug 5</td>
+                              <td style={{ padding: '8px 12px', fontSize: '12px', color: '#666', textAlign: 'center' }}>Jul 11-Aug 5</td>
+                              <td style={{ padding: '8px 12px', fontSize: '12px', color: '#666', textAlign: 'center' }}>vs {year1}</td>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {seasonData.map(({ site, june1, june2, julyAug1, julyAug2, totalBats }) => {
+                              const compareRow = compareData.find(d => d.site.id === site.id);
+
+                              const currentSiteMatching =
+                                (currentHasJune1 ? (getCountTotal(june1) || 0) : 0) +
+                                (currentHasJune2 ? (getCountTotal(june2) || 0) : 0) +
+                                (currentHasJulyAug1 ? (getCountTotal(julyAug1) || 0) : 0) +
+                                (currentHasJulyAug2 ? (getCountTotal(julyAug2) || 0) : 0);
+
+                              const compareSiteMatching = compareRow ? (
+                                (currentHasJune1 ? (getCountTotal(compareRow.june1) || 0) : 0) +
+                                (currentHasJune2 ? (getCountTotal(compareRow.june2) || 0) : 0) +
+                                (currentHasJulyAug1 ? (getCountTotal(compareRow.julyAug1) || 0) : 0) +
+                                (currentHasJulyAug2 ? (getCountTotal(compareRow.julyAug2) || 0) : 0)
+                              ) : null;
+
+                              return (
+                                <tr key={site.id}>
+                                  <td style={{ ...styles.td, fontWeight: '600' }}>{site.name}</td>
+                                  <DetailedCountCell count={june1} siteId={site.id} slot="june1" />
+                                  <DetailedCountCell count={june2} siteId={site.id} slot="june2" />
+                                  <DetailedCountCell count={julyAug1} siteId={site.id} slot="julyAug1" />
+                                  <DetailedCountCell count={julyAug2} siteId={site.id} slot="julyAug2" />
+                                  <td style={{ ...styles.td, textAlign: 'center', fontWeight: 'bold', fontSize: '20px' }}>
+                                    {totalBats}
+                                    {compareSiteMatching !== null && (currentSiteMatching > 0 || compareSiteMatching > 0) && <SeasonCompareIndicator current={currentSiteMatching} previous={compareSiteMatching} />}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                            {/* Totals row */}
+                            <tr style={{ backgroundColor: '#e8f5e9' }}>
+                              <td style={{ ...styles.td, fontWeight: 'bold', fontSize: '18px' }}>Property Total</td>
+                              <td style={{ ...styles.td, textAlign: 'center', fontWeight: 'bold' }}>
+                                {seasonData.reduce((sum, d) => sum + (getCountTotal(d.june1) || 0), 0) || '—'}
+                              </td>
+                              <td style={{ ...styles.td, textAlign: 'center', fontWeight: 'bold' }}>
+                                {seasonData.reduce((sum, d) => sum + (getCountTotal(d.june2) || 0), 0) || '—'}
+                              </td>
+                              <td style={{ ...styles.td, textAlign: 'center', fontWeight: 'bold' }}>
+                                {seasonData.reduce((sum, d) => sum + (getCountTotal(d.julyAug1) || 0), 0) || '—'}
+                              </td>
+                              <td style={{ ...styles.td, textAlign: 'center', fontWeight: 'bold' }}>
+                                {seasonData.reduce((sum, d) => sum + (getCountTotal(d.julyAug2) || 0), 0) || '—'}
+                              </td>
+                              <td style={{ ...styles.td, textAlign: 'center', fontWeight: 'bold', fontSize: '22px' }}>
+                                {currentTotal}
+                                {compareMatchingTotal > 0 && <SeasonCompareIndicator current={currentMatchingTotal} previous={compareMatchingTotal} />}
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Comparison Year Table */}
+                      {compareData.length > 0 && (
+                        <>
+                          <h3 style={{ fontSize: '20px', color: '#666', marginBottom: '16px', marginTop: '32px' }}>
+                            📊 {year1} Comparison
+                          </h3>
+
+                          <div style={{ overflowX: 'auto' }}>
+                            <table style={{ ...styles.table, minWidth: '700px', opacity: 0.85 }}>
+                              <thead>
+                                <tr>
+                                  <th style={{ ...styles.th, width: '25%', backgroundColor: '#666' }}>Roost Site</th>
+                                  <th style={{ ...styles.th, textAlign: 'center', width: '15%', backgroundColor: '#666' }}>Count #1</th>
+                                  <th style={{ ...styles.th, textAlign: 'center', width: '15%', backgroundColor: '#666' }}>Count #2</th>
+                                  <th style={{ ...styles.th, textAlign: 'center', width: '15%', backgroundColor: '#666' }}>Count #3</th>
+                                  <th style={{ ...styles.th, textAlign: 'center', width: '15%', backgroundColor: '#666' }}>Count #4</th>
+                                  <th style={{ ...styles.th, textAlign: 'center', width: '15%', backgroundColor: '#666' }}>Total</th>
+                                </tr>
+                                <tr style={{ backgroundColor: '#f0f0f0' }}>
+                                  <td style={{ padding: '8px 12px', fontSize: '12px', color: '#666' }}></td>
+                                  <td style={{ padding: '8px 12px', fontSize: '12px', color: '#666', textAlign: 'center' }}>Jun 1-21</td>
+                                  <td style={{ padding: '8px 12px', fontSize: '12px', color: '#666', textAlign: 'center' }}>Jun 1-21</td>
+                                  <td style={{ padding: '8px 12px', fontSize: '12px', color: '#666', textAlign: 'center' }}>Jul 11-Aug 5</td>
+                                  <td style={{ padding: '8px 12px', fontSize: '12px', color: '#666', textAlign: 'center' }}>Jul 11-Aug 5</td>
+                                  <td style={{ padding: '8px 12px', fontSize: '12px', color: '#666', textAlign: 'center' }}></td>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {compareData.map(({ site, june1, june2, julyAug1, julyAug2, totalBats }) => (
+                                  <tr key={site.id}>
+                                    <td style={{ ...styles.td, fontWeight: '600' }}>{site.name}</td>
+                                    <td style={{ ...styles.td, textAlign: 'center' }}>
+                                      {june1 ? (
+                                        <>
+                                          <div>{getCountTotal(june1)}</div>
+                                          <div style={{ fontSize: '12px', color: '#666' }}>{formatDate(june1.date).split(',')[0]}</div>
+                                        </>
+                                      ) : '—'}
+                                    </td>
+                                    <td style={{ ...styles.td, textAlign: 'center' }}>
+                                      {june2 ? (
+                                        <>
+                                          <div>{getCountTotal(june2)}</div>
+                                          <div style={{ fontSize: '12px', color: '#666' }}>{formatDate(june2.date).split(',')[0]}</div>
+                                        </>
+                                      ) : '—'}
+                                    </td>
+                                    <td style={{ ...styles.td, textAlign: 'center' }}>
+                                      {julyAug1 ? (
+                                        <>
+                                          <div>{getCountTotal(julyAug1)}</div>
+                                          <div style={{ fontSize: '12px', color: '#666' }}>{formatDate(julyAug1.date).split(',')[0]}</div>
+                                        </>
+                                      ) : '—'}
+                                    </td>
+                                    <td style={{ ...styles.td, textAlign: 'center' }}>
+                                      {julyAug2 ? (
+                                        <>
+                                          <div>{getCountTotal(julyAug2)}</div>
+                                          <div style={{ fontSize: '12px', color: '#666' }}>{formatDate(julyAug2.date).split(',')[0]}</div>
+                                        </>
+                                      ) : '—'}
+                                    </td>
+                                    <td style={{ ...styles.td, textAlign: 'center', fontWeight: 'bold' }}>{totalBats}</td>
+                                  </tr>
+                                ))}
+                                <tr style={{ backgroundColor: '#f0f0f0' }}>
+                                  <td style={{ ...styles.td, fontWeight: 'bold' }}>Property Total</td>
+                                  <td style={{ ...styles.td, textAlign: 'center', fontWeight: 'bold' }}>
+                                    {compareData.reduce((sum, d) => sum + (getCountTotal(d.june1) || 0), 0) || '—'}
+                                  </td>
+                                  <td style={{ ...styles.td, textAlign: 'center', fontWeight: 'bold' }}>
+                                    {compareData.reduce((sum, d) => sum + (getCountTotal(d.june2) || 0), 0) || '—'}
+                                  </td>
+                                  <td style={{ ...styles.td, textAlign: 'center', fontWeight: 'bold' }}>
+                                    {compareData.reduce((sum, d) => sum + (getCountTotal(d.julyAug1) || 0), 0) || '—'}
+                                  </td>
+                                  <td style={{ ...styles.td, textAlign: 'center', fontWeight: 'bold' }}>
+                                    {compareData.reduce((sum, d) => sum + (getCountTotal(d.julyAug2) || 0), 0) || '—'}
+                                  </td>
+                                  <td style={{ ...styles.td, textAlign: 'center', fontWeight: 'bold', fontSize: '18px' }}>{compareTotal}</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+
+                          {/* Year over year summary */}
+                          <div style={{ marginTop: '24px', padding: '20px', backgroundColor: currentMatchingTotal >= compareMatchingTotal ? '#e8f5e9' : '#fff3cd', borderRadius: '8px' }}>
+                            <p style={{ fontSize: '18px', margin: 0, textAlign: 'center' }}>
+                              <strong>{year2} vs {year1}</strong>
+                              {slotsCompared < 4 && (
+                                <span style={{ fontSize: '14px', color: '#666', fontWeight: 'normal' }}> (comparing {slotsCompared} of 4 count periods)</span>
+                              )}
+                              <strong>:</strong>{' '}
+                              {compareMatchingTotal === 0 ? (
+                                <span style={{ color: '#666' }}>No matching data in {year1}</span>
+                              ) : currentMatchingTotal > compareMatchingTotal ? (
+                                <span style={{ color: '#2e7d32' }}>
+                                  ↑ Up {currentMatchingTotal - compareMatchingTotal} bats ({Math.round((currentMatchingTotal - compareMatchingTotal) / compareMatchingTotal * 100)}%)
+                                </span>
+                              ) : currentMatchingTotal < compareMatchingTotal ? (
+                                <span style={{ color: '#856404' }}>
+                                  ↓ Down {compareMatchingTotal - currentMatchingTotal} bats ({Math.round((compareMatchingTotal - currentMatchingTotal) / compareMatchingTotal * 100)}%)
+                                </span>
+                              ) : (
+                                <span style={{ color: '#666' }}>→ Same as {year1}</span>
+                              )}
+                            </p>
+                            {slotsCompared < 4 && (
+                              <p style={{ fontSize: '13px', color: '#666', margin: '12px 0 0 0', textAlign: 'center', fontStyle: 'italic' }}>
+                                ℹ️ Comparison includes only count periods completed in {year2} ({[
+                                  currentHasJune1 && 'Count #1',
+                                  currentHasJune2 && 'Count #2',
+                                  currentHasJulyAug1 && 'Count #3',
+                                  currentHasJulyAug2 && 'Count #4'
+                                ].filter(Boolean).join(', ')})
+                              </p>
+                            )}
+                          </div>
+                        </>
+                      )}
+
+                      <p style={{ ...styles.helpText, marginTop: '16px', textAlign: 'center' }}>
+                        Totals use Counter 1. Counter 2 is recorded for BC Bats data validation.
+                      </p>
+                    </div>
+                  );
+                })()}
+
               </>
             )}
 
