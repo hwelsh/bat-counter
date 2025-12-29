@@ -949,14 +949,17 @@
               <div style={styles.summaryCard}>
                 <div style={styles.summaryNumber}>{thisYearCountingNights}</div>
                 <div style={styles.summaryLabel}>Counting Nights</div>
+                <div style={{ fontSize: '24px', marginTop: '4px' }}>🌙</div>
               </div>
               <div style={styles.summaryCard}>
                 <div style={styles.summaryNumber}>{totalBatsThisYear.toLocaleString()}</div>
                 <div style={styles.summaryLabel}>Bats Counted</div>
+                <div style={{ fontSize: '24px', marginTop: '4px' }}>🦇</div>
               </div>
               <div style={styles.summaryCard}>
                 <div style={styles.summaryNumber}>{thisYearVolunteerHours > 0 ? Math.round(thisYearVolunteerHours) : '—'}</div>
                 <div style={styles.summaryLabel}>Volunteer Hours</div>
+                <div style={{ fontSize: '24px', marginTop: '4px' }}>⏱️</div>
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
@@ -2976,18 +2979,22 @@
                 <div style={styles.summaryCard}>
                   <div style={styles.summaryNumber}>{yearsActiveCount}</div>
                   <div style={styles.summaryLabel}>Years Active</div>
+                  <div style={{ fontSize: '24px', marginTop: '4px' }}>📅</div>
                 </div>
                 <div style={styles.summaryCard}>
                   <div style={styles.summaryNumber}>{totalCountingNights}</div>
                   <div style={styles.summaryLabel}>Counting Nights</div>
+                  <div style={{ fontSize: '24px', marginTop: '4px' }}>🌙</div>
                 </div>
                 <div style={styles.summaryCard}>
                   <div style={styles.summaryNumber}>{totalBatsAllTime.toLocaleString()}</div>
                   <div style={styles.summaryLabel}>Bats Counted</div>
+                  <div style={{ fontSize: '24px', marginTop: '4px' }}>🦇</div>
                 </div>
                 <div style={styles.summaryCard}>
                   <div style={styles.summaryNumber}>{totalVolunteerHours > 0 ? Math.round(totalVolunteerHours) : '—'}</div>
                   <div style={styles.summaryLabel}>Volunteer Hours</div>
+                  <div style={{ fontSize: '24px', marginTop: '4px' }}>⏱️</div>
                 </div>
               </div>
               <div style={{ textAlign: 'center', marginTop: '16px' }}>
@@ -3195,18 +3202,22 @@
                     <div style={styles.summaryCard}>
                       <div style={styles.summaryNumber}>{seasonCountingNights}</div>
                       <div style={styles.summaryLabel}>Counting Nights</div>
+                      <div style={{ fontSize: '24px', marginTop: '4px' }}>🌙</div>
                     </div>
                     <div style={styles.summaryCard}>
                       <div style={styles.summaryNumber}>{seasonTotalBats.toLocaleString()}</div>
                       <div style={styles.summaryLabel}>Bats Counted</div>
+                      <div style={{ fontSize: '24px', marginTop: '4px' }}>🦇</div>
                     </div>
                     <div style={styles.summaryCard}>
                       <div style={styles.summaryNumber}>{seasonVolunteerHours > 0 ? Math.round(seasonVolunteerHours) : '—'}</div>
                       <div style={styles.summaryLabel}>Volunteer Hours</div>
+                      <div style={{ fontSize: '24px', marginTop: '4px' }}>⏱️</div>
                     </div>
                     <div style={styles.summaryCard}>
                       <div style={styles.summaryNumber}>{seasonPropertyIds.length}</div>
                       <div style={styles.summaryLabel}>Properties Counted</div>
+                      <div style={{ fontSize: '24px', marginTop: '4px' }}>🏠</div>
                     </div>
                   </div>
                 </div>
@@ -3475,7 +3486,7 @@
         // Sites with bats (non-zero counts)
         const sitesWithBats = [...new Set(filteredCounts.filter(c => (parseInt(c.counter1Total) || 0) > 0).map(c => c.siteId))].length;
         
-        const StatCard = ({ value, label, subtext, tooltip }) => (
+        const StatCard = ({ value, label, subtext, tooltip, emoji }) => (
           <div style={{ ...styles.summaryCard, minWidth: '140px', position: 'relative' }}>
             {tooltip && (
               <div style={{ position: 'absolute', top: '8px', right: '8px' }} title={tooltip}>
@@ -3485,6 +3496,7 @@
             <div style={styles.summaryNumber}>{value}</div>
             <div style={styles.summaryLabel}>{label}</div>
             {subtext && <div style={{ fontSize: '12px', color: colors.textLight, marginTop: '4px' }}>{subtext}</div>}
+            {emoji && <div style={{ fontSize: '24px', marginTop: '4px' }}>{emoji}</div>}
           </div>
         );
 
@@ -3512,8 +3524,8 @@
               <div style={styles.card}>
                 <h2 style={styles.cardTitle}>🗓️ Participation</h2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-                  <StatCard value={uniqueYears.length} label="BC Annual Bat Counts" />
-                  <StatCard value={yearsActiveRange} label="Years Active" />
+                  <StatCard value={uniqueYears.length} label="BC Annual Bat Counts" emoji="🎉" />
+                  <StatCard value={yearsActiveRange} label="Years Active" emoji="📅" />
                 </div>
               </div>
             )}
@@ -3521,19 +3533,19 @@
             <div style={styles.card}>
               <h2 style={styles.cardTitle}>💪 Effort</h2>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                <StatCard value={uniqueDates} label="Counting Nights" />
-                <StatCard value={totalVolunteerHours > 0 ? Math.round(totalVolunteerHours) : '—'} label="Volunteer Hours" />
-                <StatCard value={totalKm > 0 ? Math.round(totalKm).toLocaleString() : '—'} label="Km Traveled" />
+                <StatCard value={uniqueDates} label="Counting Nights" emoji="🌙" />
+                <StatCard value={totalVolunteerHours > 0 ? Math.round(totalVolunteerHours) : '—'} label="Volunteer Hours" emoji="⏱️" />
+                <StatCard value={totalKm > 0 ? Math.round(totalKm).toLocaleString() : '—'} label="Km Traveled" emoji="🚗" />
               </div>
             </div>
 
             <div style={styles.card}>
               <h2 style={styles.cardTitle}>🦇 Results</h2>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-                <StatCard value={totalBats.toLocaleString()} label="Bats Counted" />
-                <StatCard value={trendValue || '—'} label="Trend" subtext={trendSubtext} />
-                <StatCard value={sessionsWithPups} label="Pup Sightings" />
-                <StatCard value={sitesWithBats} label="Active Roosts" subtext={`of ${activeSiteIds.length} sites visited`} />
+                <StatCard value={totalBats.toLocaleString()} label="Bats Counted" emoji="🦇" />
+                <StatCard value={trendValue || '—'} label="Trend" subtext={trendSubtext} emoji="📈" />
+                <StatCard value={sessionsWithPups} label="Pup Sightings" emoji="👶" />
+                <StatCard value={sitesWithBats} label="Active Roosts" subtext={`of ${activeSiteIds.length} sites visited`} emoji="🏠" />
               </div>
             </div>
 
@@ -3545,17 +3557,20 @@
                   label="Highest Single Count"
                   subtext={highestCountProperty ? `${highestCountProperty.name}` : ''}
                   tooltip="The highest number of bats counted in a single counting session at any roost site."
+                  emoji="🏅"
                 />
                 <StatCard
                   value={seasonalGrowth.growth > 0 ? `+${seasonalGrowth.growth}` : '—'}
                   label="Greatest Seasonal Growth"
                   subtext={seasonalGrowth.property ? `+${seasonalGrowth.percent}% · ${seasonalGrowth.property.name}` : ''}
                   tooltip="Compares the lowest count from June (counts 1-2) to the highest count from July/August (counts 3-4) for each property, combining all roost sites. Shows the property with the greatest increase."
+                  emoji="📈"
                 />
                 <StatCard
                   value={mostVolunteers}
                   label="Most Volunteers"
                   tooltip="The highest number of volunteers participating in a single counting session."
+                  emoji="👥"
                 />
               </div>
             </div>
