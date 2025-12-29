@@ -967,7 +967,12 @@
 
             {/* Combined Season Progress Section */}
             <div style={styles.card}>
-              <h2 style={styles.cardTitle}>☀️ {currentYear} Season Progress</h2>
+              <h2 style={styles.cardTitle}>
+                ☀️ {currentYear} Season Progress
+                {properties.length > 0 && [1, 2, 3, 4].every(num => getCountProgress(num) === 1) && (
+                  <span style={{ fontWeight: 'normal', fontStyle: 'italic', color: colors.forest }}> — Season complete!</span>
+                )}
+              </h2>
 
               {/* Count Progress Circles */}
               {properties.length > 0 && (
