@@ -908,7 +908,7 @@
             )}
 
             {/* Main Action Buttons */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '24px' }}>
               <button
                 onClick={() => { setCountForm({ date: new Date().toISOString().split('T')[0] }); setView('newCount'); }}
                 style={{ ...styles.button, ...styles.buttonPrimary, padding: '20px', fontSize: '18px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', width: '150px', height: '150px' }}
@@ -917,19 +917,19 @@
                 <span style={{ fontSize: '42px' }}>🦇</span>
                 <span style={{ textAlign: 'center', lineHeight: '1.2' }}>New Counting Session</span>
               </button>
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', height: '150px' }}>
                 <button
                   onClick={() => setView('history')}
-                  style={{ ...styles.button, ...styles.buttonSecondary, padding: '16px 24px', fontSize: '15px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}
+                  style={{ ...styles.button, ...styles.buttonSecondary, padding: '12px 20px', fontSize: '14px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', flex: 1 }}
                 >
-                  <span style={{ fontSize: '24px' }}>📓</span>
+                  <span style={{ fontSize: '20px' }}>📓</span>
                   <span>Counting Session Log</span>
                 </button>
                 <button
                   onClick={() => setView('appSettings')}
-                  style={{ ...styles.button, ...styles.buttonSecondary, padding: '16px 24px', fontSize: '15px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}
+                  style={{ ...styles.button, ...styles.buttonSecondary, padding: '12px 20px', fontSize: '14px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', flex: 1 }}
                 >
-                  <span style={{ fontSize: '24px' }}>⚙️</span>
+                  <span style={{ fontSize: '20px' }}>⚙️</span>
                   <span>Settings</span>
                 </button>
               </div>
