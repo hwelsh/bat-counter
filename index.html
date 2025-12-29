@@ -3567,7 +3567,7 @@
                 <StatCard
                   value={seasonalGrowth.growth > 0 ? `+${seasonalGrowth.growth}` : '—'}
                   label="Greatest Seasonal Growth"
-                  subtext={seasonalGrowth.property ? `${seasonalGrowth.year} · +${seasonalGrowth.percent}% · ${seasonalGrowth.property.name}` : ''}
+                  subtext={seasonalGrowth.property ? `${selectedYear === 'all' && seasonalGrowth.year ? `${seasonalGrowth.year} · ` : ''}+${seasonalGrowth.percent}% · ${seasonalGrowth.property.name}` : ''}
                   tooltip="Compares the lowest count from June (counts 1-2) to the highest count from July/August (counts 3-4) for each property, combining all roost sites. Shows the property with the greatest increase."
                   emoji="📈"
                 />
