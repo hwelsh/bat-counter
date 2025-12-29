@@ -3190,8 +3190,45 @@
         
         // Results stats
         const totalBats = filteredCounts.reduce((sum, c) => sum + (parseInt(c.counter1Total) || 0), 0);
-        const avgBatsPerSession = totalSessions > 0 ? (totalBats / totalSessions).toFixed(1) : 0;
-        
+
+        // Trend calculation
+        const getBatsForYear = (year) => {
+          return counts.filter(c => new Date(c.date).getFullYear() === year)
+            .reduce((sum, c) => sum + (parseInt(c.counter1Total) || 0), 0);
+        };
+
+        let trendValue = null;
+        let trendLabel = 'Trend';
+        let trendSubtext = '';
+
+        if (uniqueYears.length >= 2) {
+          if (selectedYear === 'all') {
+            // Compare most recent year to first year
+            const firstYear = Math.min(...uniqueYears);
+            const lastYear = Math.max(...uniqueYears);
+            const firstYearBats = getBatsForYear(firstYear);
+            const lastYearBats = getBatsForYear(lastYear);
+            if (firstYearBats > 0) {
+              const changePercent = Math.round(((lastYearBats - firstYearBats) / firstYearBats) * 100);
+              trendValue = changePercent >= 0 ? `+${changePercent}%` : `${changePercent}%`;
+              trendSubtext = `${firstYear} → ${lastYear}`;
+            }
+          } else {
+            // Compare selected year to previous year
+            const selectedYearNum = parseInt(selectedYear);
+            const prevYear = uniqueYears.filter(y => y < selectedYearNum).pop();
+            if (prevYear) {
+              const prevYearBats = getBatsForYear(prevYear);
+              const selectedYearBats = getBatsForYear(selectedYearNum);
+              if (prevYearBats > 0) {
+                const changePercent = Math.round(((selectedYearBats - prevYearBats) / prevYearBats) * 100);
+                trendValue = changePercent >= 0 ? `+${changePercent}%` : `${changePercent}%`;
+                trendSubtext = `vs ${prevYear}`;
+              }
+            }
+          }
+        }
+
         const sessionsWithPups = filteredCounts.filter(c => c.pupsSeenHeard === 'Yes' || c.pupsSeenHeard === 'Heard' || c.pupsSeenHeard === 'Seen').length;
         
         // Records
@@ -3270,7 +3307,7 @@
               <h2 style={styles.cardTitle}>🦇 Results</h2>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
                 <StatCard value={totalBats.toLocaleString()} label="Bats Counted" />
-                <StatCard value={avgBatsPerSession} label="Avg per Session" />
+                <StatCard value={trendValue || '—'} label="Trend" subtext={trendSubtext} />
                 <StatCard value={sessionsWithPups} label="Pup Sightings" />
                 <StatCard value={sitesWithBats} label="Active Roosts" subtext={`of ${activeSiteIds.length} sites visited`} />
               </div>
