@@ -3324,8 +3324,13 @@
         // Sites with bats (non-zero counts)
         const sitesWithBats = [...new Set(filteredCounts.filter(c => (parseInt(c.counter1Total) || 0) > 0).map(c => c.siteId))].length;
         
-        const StatCard = ({ value, label, subtext }) => (
-          <div style={{ ...styles.summaryCard, minWidth: '140px' }}>
+        const StatCard = ({ value, label, subtext, tooltip }) => (
+          <div style={{ ...styles.summaryCard, minWidth: '140px', position: 'relative' }}>
+            {tooltip && (
+              <div style={{ position: 'absolute', top: '8px', right: '8px' }} title={tooltip}>
+                <span style={{ cursor: 'help', fontSize: '14px', color: colors.sage }}>ⓘ</span>
+              </div>
+            )}
             <div style={styles.summaryNumber}>{value}</div>
             <div style={styles.summaryLabel}>{label}</div>
             {subtext && <div style={{ fontSize: '12px', color: colors.textLight, marginTop: '4px' }}>{subtext}</div>}
@@ -3388,13 +3393,19 @@
                   value={highestSingleCount}
                   label="Highest Single Count"
                   subtext={highestCountProperty ? `${highestCountProperty.name}` : ''}
+                  tooltip="The highest number of bats counted in a single counting session at any roost site."
                 />
                 <StatCard
                   value={seasonalGrowth.growth > 0 ? `+${seasonalGrowth.growth}` : '—'}
                   label="Greatest Seasonal Growth"
                   subtext={seasonalGrowth.property ? `+${seasonalGrowth.percent}% · ${seasonalGrowth.property.name}` : ''}
+                  tooltip="Compares the lowest count from June (counts 1-2) to the highest count from July/August (counts 3-4) for each property, combining all roost sites. Shows the property with the greatest increase."
                 />
-                <StatCard value={mostVolunteers} label="Most Volunteers" />
+                <StatCard
+                  value={mostVolunteers}
+                  label="Most Volunteers"
+                  tooltip="The highest number of volunteers participating in a single counting session."
+                />
               </div>
             </div>
           </div>
