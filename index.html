@@ -2989,7 +2989,7 @@
               <p style={{ color: colors.textLight, marginBottom: '16px' }}>
                 Your cumulative contribution to the BC Annual Bat Count program.
               </p>
-              <div style={styles.summaryGrid}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '16px' }}>
                 <div style={styles.summaryCard}>
                   <div style={styles.summaryNumber}>{yearsActiveCount}</div>
                   <div style={styles.summaryLabel}>Years Active</div>
@@ -3060,7 +3060,7 @@
               ) : (
                 <>
                   {/* Season Summary */}
-                  <div style={styles.summaryGrid}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '16px' }}>
                     <div style={styles.summaryCard}>
                       <div style={styles.summaryNumber}>{seasonCountSessions}</div>
                       <div style={styles.summaryLabel}>Count Sessions</div>
@@ -3245,7 +3245,7 @@
             {selectedYear === 'all' && (
               <div style={styles.card}>
                 <h2 style={styles.cardTitle}>🗓️ Participation</h2>
-                <div style={styles.summaryGrid}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
                   <StatCard value={uniqueYears.length} label="BC Annual Bat Counts" />
                   <StatCard value={yearsActiveRange} label="Years Active" />
                 </div>
@@ -3254,7 +3254,7 @@
 
             <div style={styles.card}>
               <h2 style={styles.cardTitle}>💪 Effort</h2>
-              <div style={styles.summaryGrid}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 <StatCard value={uniqueDates} label="Evenings Out Counting Bats!" />
                 <StatCard value={totalVolunteerHours > 0 ? Math.round(totalVolunteerHours) : '—'} label="Volunteer Hours" />
                 <StatCard value={totalKm > 0 ? Math.round(totalKm).toLocaleString() : '—'} label="Km Traveled" />
@@ -3263,7 +3263,7 @@
 
             <div style={styles.card}>
               <h2 style={styles.cardTitle}>🦇 Results</h2>
-              <div style={styles.summaryGrid}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
                 <StatCard value={totalBats.toLocaleString()} label="Bats Counted" />
                 <StatCard value={avgBatsPerSession} label="Avg per Session" />
                 <StatCard value={sessionsWithPups} label="Pup Sightings" />
@@ -3273,11 +3273,11 @@
 
             <div style={styles.card}>
               <h2 style={styles.cardTitle}>🏆 Records</h2>
-              <div style={styles.summaryGrid}>
-                <StatCard 
-                  value={highestSingleCount} 
-                  label="Highest Single Count" 
-                  subtext={highestCountProperty ? `${highestCountProperty.name}` : ''} 
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                <StatCard
+                  value={highestSingleCount}
+                  label="Highest Single Count"
+                  subtext={highestCountProperty ? `${highestCountProperty.name}` : ''}
                 />
                 <StatCard value={activePropertyIds.length} label="Properties Counted" />
                 <StatCard value={activeSiteIds.length} label="Sites Counted" />
