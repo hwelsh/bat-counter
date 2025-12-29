@@ -144,6 +144,10 @@
       const [properties, setProperties] = useState([]);
       const [sites, setSites] = useState([]);
       const [counts, setCounts] = useState([]);
+      const [appSettings, setAppSettings] = useState({
+        appTitle: 'Thetis Island Bat Watch',
+        appSubtitle: 'In partnership with the BC Community Bat Program & Thetis Island Nature Conservancy'
+      });
       const [editingProperty, setEditingProperty] = useState(null);
       const [editingSite, setEditingSite] = useState(null);
       const [editingCount, setEditingCount] = useState(null);
@@ -156,11 +160,13 @@
         const savedProperties = localStorage.getItem('batcount_properties');
         const savedSites = localStorage.getItem('batcount_sites');
         const savedCounts = localStorage.getItem('batcount_counts');
-        
+        const savedAppSettings = localStorage.getItem('batcount_appsettings');
+
         if (savedMyInfo) setMyInfo(JSON.parse(savedMyInfo));
         if (savedProperties) setProperties(JSON.parse(savedProperties));
         if (savedSites) setSites(JSON.parse(savedSites));
         if (savedCounts) setCounts(JSON.parse(savedCounts));
+        if (savedAppSettings) setAppSettings(JSON.parse(savedAppSettings));
       }, []);
 
       // Save to localStorage whenever data changes
@@ -168,6 +174,7 @@
       useEffect(() => { localStorage.setItem('batcount_properties', JSON.stringify(properties)); }, [properties]);
       useEffect(() => { localStorage.setItem('batcount_sites', JSON.stringify(sites)); }, [sites]);
       useEffect(() => { localStorage.setItem('batcount_counts', JSON.stringify(counts)); }, [counts]);
+      useEffect(() => { localStorage.setItem('batcount_appsettings', JSON.stringify(appSettings)); }, [appSettings]);
 
       const showMessage = (text, type = 'success') => {
         setMessage({ text, type });
@@ -1244,7 +1251,7 @@
                 </p>
               </div>
 
-              <div>
+              <div style={{ marginBottom: '24px' }}>
                 <h3 style={{ fontSize: '18px', color: colors.forest, marginBottom: '12px' }}>Back Up</h3>
                 <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
                   <button onClick={exportBackup} style={{ ...styles.button, ...styles.buttonSecondary }}>
@@ -1257,6 +1264,33 @@
                 </div>
                 <p style={{ ...styles.helpText, marginTop: '12px' }}>
                   Data is stored locally in your browser. Remember to download a backup periodically!
+                </p>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: '18px', color: colors.forest, marginBottom: '12px' }}>Customize App</h3>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>App Title</label>
+                  <input
+                    type="text"
+                    value={appSettings.appTitle || ''}
+                    onChange={(e) => setAppSettings({ ...appSettings, appTitle: e.target.value })}
+                    style={styles.input}
+                    placeholder="Thetis Island Bat Watch"
+                  />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Subtitle</label>
+                  <input
+                    type="text"
+                    value={appSettings.appSubtitle || ''}
+                    onChange={(e) => setAppSettings({ ...appSettings, appSubtitle: e.target.value })}
+                    style={styles.input}
+                    placeholder="In partnership with the BC Community Bat Program"
+                  />
+                </div>
+                <p style={{ ...styles.helpText, marginTop: '8px' }}>
+                  Customize the app title and subtitle to match your organization or project.
                 </p>
               </div>
             </div>
@@ -4019,8 +4053,8 @@
               <div style={styles.headerBrand}>
                 <span style={{ fontSize: '40px' }}>🦇</span>
                 <div>
-                  <h1 style={styles.title}>Thetis Island Bat Watch</h1>
-                  <p style={styles.subtitle}>In partnership with the BC Community Bat Program & Thetis Island Nature Conservancy</p>
+                  <h1 style={styles.title}>{appSettings.appTitle || 'Thetis Island Bat Watch'}</h1>
+                  <p style={styles.subtitle}>{appSettings.appSubtitle || 'In partnership with the BC Community Bat Program & Thetis Island Nature Conservancy'}</p>
                 </div>
               </div>
               <a href="https://www.thetisislandnatureconservancy.org" target="_blank" rel="noopener noreferrer" title="Thetis Island Nature Conservancy">
