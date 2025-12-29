@@ -3339,6 +3339,14 @@
 
         return (
           <div>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+              <button onClick={() => setView('reports')} style={{ ...styles.button, ...styles.buttonSecondary }}>
+                📊 Back to Reports
+              </button>
+              <button onClick={() => setView('home')} style={{ ...styles.button, ...styles.buttonSecondary }}>
+                ← Back to Home
+              </button>
+            </div>
             <h1 style={{ fontSize: '28px', fontWeight: '600', color: colors.forest, marginBottom: '24px', textAlign: 'center' }}>
               📊 Impact Report
             </h1>
@@ -3407,15 +3415,6 @@
                   tooltip="The highest number of volunteers participating in a single counting session."
                 />
               </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-              <button onClick={() => setView('reports')} style={{ ...styles.button, ...styles.buttonSecondary }}>
-                📊 Back to Reports
-              </button>
-              <button onClick={() => setView('home')} style={{ ...styles.button, ...styles.buttonSecondary }}>
-                ← Back to Home
-              </button>
             </div>
           </div>
         );
@@ -3665,6 +3664,14 @@
 
         return (
           <div>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+              <button onClick={() => setView('reports')} style={{ ...styles.button, ...styles.buttonSecondary }}>
+                📊 Back to Reports
+              </button>
+              <button onClick={() => setView('home')} style={{ ...styles.button, ...styles.buttonSecondary }}>
+                ← Back to Home
+              </button>
+            </div>
             <h1 style={{ fontSize: '28px', fontWeight: '600', color: colors.forest, marginBottom: '24px', textAlign: 'center' }}>
               📈 Year-over-Year Comparison
             </h1>
@@ -4131,15 +4138,6 @@
 
               </>
             )}
-
-            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-              <button onClick={() => setView('reports')} style={{ ...styles.button, ...styles.buttonSecondary }}>
-                📊 Back to Reports
-              </button>
-              <button onClick={() => setView('home')} style={{ ...styles.button, ...styles.buttonSecondary }}>
-                ← Back to Home
-              </button>
-            </div>
           </div>
         );
       };
@@ -4246,6 +4244,14 @@
 
         return (
           <div>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+              <button onClick={() => setView('appSettings')} style={{ ...styles.button, ...styles.buttonSecondary }}>
+                ⚙️ Back to Settings
+              </button>
+              <button onClick={() => setView('home')} style={{ ...styles.button, ...styles.buttonSecondary }}>
+                ← Back to Home
+              </button>
+            </div>
             <div style={styles.card}>
               <h2 style={styles.cardTitle}>🚗 Mileage Report</h2>
 
@@ -4374,15 +4380,6 @@
                   <p>No counting sessions recorded for {selectedYear}.</p>
                 </div>
               )}
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-              <button onClick={() => setView('appSettings')} style={{ ...styles.button, ...styles.buttonSecondary }}>
-                ⚙️ Back to Settings
-              </button>
-              <button onClick={() => setView('home')} style={{ ...styles.button, ...styles.buttonSecondary }}>
-                ← Back to Home
-              </button>
             </div>
           </div>
         );
