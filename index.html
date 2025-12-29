@@ -2943,12 +2943,17 @@
           return sum + (durationHours > 0 ? durationHours * volunteers : 0);
         }, 0);
         
-        const totalKm = filteredCounts.reduce((sum, c) => {
+        // Calculate mileage based on unique property-date trips (not per roost site)
+        const tripsByPropertyDate = {};
+        filteredCounts.forEach(c => {
           const site = sites.find(s => s.id === c.siteId);
           const property = site ? properties.find(p => p.id === site.propertyId) : null;
-          const distanceKm = property?.distanceKm ? parseFloat(property.distanceKm) * 2 : 0;
-          return sum + distanceKm;
-        }, 0);
+          const key = `${property?.id || 'unknown'}-${c.date}`;
+          if (!tripsByPropertyDate[key]) {
+            tripsByPropertyDate[key] = property?.distanceKm ? parseFloat(property.distanceKm) * 2 : 0;
+          }
+        });
+        const totalKm = Object.values(tripsByPropertyDate).reduce((sum, km) => sum + km, 0);
         
         // Results stats
         const totalBats = filteredCounts.reduce((sum, c) => sum + (parseInt(c.counter1Total) || 0), 0);
@@ -4160,38 +4165,45 @@
         const availableYears = getAvailableYears();
         const [selectedYear, setSelectedYear] = useState(currentYear);
 
-        // Get all counts for the selected year with mileage info
-        const yearCounts = counts
-          .filter(c => new Date(c.date).getFullYear() === selectedYear)
-          .sort((a, b) => new Date(a.date) - new Date(b.date))
-          .map(count => {
-            const site = sites.find(s => s.id === count.siteId);
-            const property = site ? properties.find(p => p.id === site.propertyId) : null;
+        // Group counts by property AND date - one trip per property per day
+        const yearCountsRaw = counts.filter(c => new Date(c.date).getFullYear() === selectedYear);
+
+        // Create unique property-date trips (not per roost site)
+        const tripsByPropertyDate = {};
+        yearCountsRaw.forEach(count => {
+          const site = sites.find(s => s.id === count.siteId);
+          const property = site ? properties.find(p => p.id === site.propertyId) : null;
+          const key = `${property?.id || 'unknown'}-${count.date}`;
+
+          if (!tripsByPropertyDate[key]) {
             const distanceKm = property?.distanceKm ? parseFloat(property.distanceKm) : 0;
-            const roundTripKm = distanceKm * 2;
-            
-            return {
-              ...count,
-              site,
+            tripsByPropertyDate[key] = {
+              date: count.date,
               property,
               distanceKm,
-              roundTripKm,
+              roundTripKm: distanceKm * 2,
+              sitesVisited: []
             };
-          });
+          }
+          tripsByPropertyDate[key].sitesVisited.push(site?.name || 'Unknown Site');
+        });
 
-        const totalKm = yearCounts.reduce((sum, c) => sum + c.roundTripKm, 0);
-        const tripsWithMileage = yearCounts.filter(c => c.roundTripKm > 0).length;
-        const tripsWithoutMileage = yearCounts.filter(c => c.roundTripKm === 0).length;
+        // Convert to array and sort by date
+        const yearTrips = Object.values(tripsByPropertyDate).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        const totalKm = yearTrips.reduce((sum, t) => sum + t.roundTripKm, 0);
+        const tripsWithMileage = yearTrips.filter(t => t.roundTripKm > 0).length;
+        const tripsWithoutMileage = yearTrips.filter(t => t.roundTripKm === 0).length;
 
         // Group by property for summary
         const byProperty = {};
-        yearCounts.forEach(c => {
-          const propName = c.property?.name || 'Unknown Property';
+        yearTrips.forEach(t => {
+          const propName = t.property?.name || 'Unknown Property';
           if (!byProperty[propName]) {
-            byProperty[propName] = { trips: 0, totalKm: 0, distanceKm: c.distanceKm };
+            byProperty[propName] = { trips: 0, totalKm: 0, distanceKm: t.distanceKm };
           }
           byProperty[propName].trips++;
-          byProperty[propName].totalKm += c.roundTripKm;
+          byProperty[propName].totalKm += t.roundTripKm;
         });
 
         const yearOptions = [...new Set([currentYear, ...availableYears])].sort((a, b) => b - a);
@@ -4211,23 +4223,23 @@
             return str;
           };
 
-          const rows = yearCounts.map(count => {
+          const rows = yearTrips.map(trip => {
             // Build a sensible "To" address
-            let toAddress = count.property?.landownerAddress;
-            if (!toAddress && count.property?.name) {
-              toAddress = count.property.name + ', Thetis Island, BC';
+            let toAddress = trip.property?.landownerAddress;
+            if (!toAddress && trip.property?.name) {
+              toAddress = trip.property.name + ', Thetis Island, BC';
             }
             if (!toAddress) {
               toAddress = 'Unknown property';
             }
-            
+
             return [
-              count.date || '',
-              escapeCSV(count.property?.name || 'Unknown'),
+              trip.date || '',
+              escapeCSV(trip.property?.name || 'Unknown'),
               'BC Annual Bat Count',
               escapeCSV('83 Blue Heron Rd, Thetis Island, BC'),
               escapeCSV(toAddress),
-              count.roundTripKm > 0 ? count.roundTripKm.toFixed(1) : '',
+              trip.roundTripKm > 0 ? trip.roundTripKm.toFixed(1) : '',
             ];
           });
 
@@ -4261,10 +4273,10 @@
                     {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
                   </select>
                 </div>
-                <button 
-                  onClick={exportMileageCSV} 
+                <button
+                  onClick={exportMileageCSV}
                   style={{ ...styles.button, ...styles.buttonPrimary }}
-                  disabled={yearCounts.length === 0}
+                  disabled={yearTrips.length === 0}
                 >
                   📥 Export Mileage CSV
                 </button>
@@ -4273,7 +4285,7 @@
               {/* Summary Cards */}
               <div style={styles.summaryGrid}>
                 <div style={styles.summaryCard}>
-                  <div style={styles.summaryNumber}>{yearCounts.length}</div>
+                  <div style={styles.summaryNumber}>{yearTrips.length}</div>
                   <div style={styles.summaryLabel}>Total Trips</div>
                 </div>
                 <div style={styles.summaryCard}>
@@ -4321,7 +4333,7 @@
                       <tr style={{ backgroundColor: '#e8f5e9' }}>
                         <td style={{ ...styles.td, fontWeight: 'bold' }}>Total</td>
                         <td style={styles.td}></td>
-                        <td style={{ ...styles.td, textAlign: 'center', fontWeight: 'bold' }}>{yearCounts.length}</td>
+                        <td style={{ ...styles.td, textAlign: 'center', fontWeight: 'bold' }}>{yearTrips.length}</td>
                         <td style={{ ...styles.td, textAlign: 'center', fontWeight: 'bold', fontSize: '18px' }}>{totalKm.toFixed(1)}</td>
                       </tr>
                     </tbody>
@@ -4330,11 +4342,11 @@
               )}
 
               {/* Detailed Trip Log */}
-              {yearCounts.length > 0 && (
+              {yearTrips.length > 0 && (
                 <>
                   <h3 style={{ fontSize: '20px', color: '#2c5530', marginTop: '32px', marginBottom: '16px' }}>Trip Log</h3>
                   <div style={styles.infoBox}>
-                    This log can be used for volunteer expense reimbursement or charitable donation receipts. 
+                    This log can be used for volunteer expense reimbursement or charitable donation receipts.
                     All trips are from 83 Blue Heron Road, Thetis Island to the property and back.
                   </div>
                   <div style={{ overflowX: 'auto' }}>
@@ -4343,20 +4355,20 @@
                         <tr>
                           <th style={styles.th}>Date</th>
                           <th style={styles.th}>Property</th>
-                          <th style={styles.th}>Roost Site</th>
+                          <th style={styles.th}>Sites Visited</th>
                           <th style={styles.th}>Purpose</th>
                           <th style={{ ...styles.th, textAlign: 'center' }}>Round Trip (km)</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {yearCounts.map(count => (
-                          <tr key={count.id}>
-                            <td style={styles.td}>{formatDate(count.date)}</td>
-                            <td style={styles.td}>{count.property?.name || 'Unknown'}</td>
-                            <td style={styles.td}>{count.site?.name || 'Unknown'}</td>
+                        {yearTrips.map((trip, idx) => (
+                          <tr key={`${trip.property?.id}-${trip.date}-${idx}`}>
+                            <td style={styles.td}>{formatDate(trip.date)}</td>
+                            <td style={styles.td}>{trip.property?.name || 'Unknown'}</td>
+                            <td style={styles.td}>{trip.sitesVisited.join(', ')}</td>
                             <td style={styles.td}>BC Annual Bat Count</td>
-                            <td style={{ ...styles.td, textAlign: 'center', fontWeight: count.roundTripKm > 0 ? 'bold' : 'normal', color: count.roundTripKm === 0 ? '#999' : 'inherit' }}>
-                              {count.roundTripKm > 0 ? count.roundTripKm.toFixed(1) : '—'}
+                            <td style={{ ...styles.td, textAlign: 'center', fontWeight: trip.roundTripKm > 0 ? 'bold' : 'normal', color: trip.roundTripKm === 0 ? '#999' : 'inherit' }}>
+                              {trip.roundTripKm > 0 ? trip.roundTripKm.toFixed(1) : '—'}
                             </td>
                           </tr>
                         ))}
@@ -4370,7 +4382,7 @@
                 </>
               )}
 
-              {yearCounts.length === 0 && (
+              {yearTrips.length === 0 && (
                 <div style={styles.emptyState}>
                   <p>No counting sessions recorded for {selectedYear}.</p>
                 </div>
