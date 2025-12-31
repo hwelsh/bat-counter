@@ -1199,17 +1199,19 @@
 
               {/* Season Calendar */}
               {(() => {
-                // Get all count dates for current year with property info
+                // Get all count dates for current year with property, site, and bat count info
                 const countsByDate = {};
                 thisYearCounts.forEach(c => {
                   const site = sites.find(s => s.id === c.siteId);
                   const property = site ? properties.find(p => p.id === site.propertyId) : null;
                   const propertyName = property ? property.name : 'Unknown';
-                  
+                  const siteName = site ? site.name : 'Unknown';
+                  const batCount = parseInt(c.counter1Total) || 0;
+
                   if (!countsByDate[c.date]) {
                     countsByDate[c.date] = [];
                   }
-                  countsByDate[c.date].push(propertyName);
+                  countsByDate[c.date].push({ propertyName, siteName, batCount });
                 });
                 
                 // Helper to check if date is in count window
@@ -1254,12 +1256,17 @@
                           }
                           
                           const dateStr = `${currentYear}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                          const dateProperties = countsByDate[dateStr] || [];
-                          const hasCount = dateProperties.length > 0;
+                          const dateCounts = countsByDate[dateStr] || [];
+                          const hasCount = dateCounts.length > 0;
                           const countWindow = isInCountWindow(monthIndex, day);
-                          
-                          const uniqueProperties = [...new Set(dateProperties)];
-                          const tooltipText = hasCount ? uniqueProperties.join(', ') : '';
+
+                          // Build tooltip with site details
+                          let tooltipText = '';
+                          if (hasCount) {
+                            const totalBats = dateCounts.reduce((sum, c) => sum + c.batCount, 0);
+                            const lines = dateCounts.map(c => `${c.siteName}: ${c.batCount} bats`);
+                            tooltipText = lines.join('\n') + `\n─────────\nTotal: ${totalBats} bats`;
+                          }
                           
                           let bgColor = 'transparent';
                           let textColor = colors.text;
@@ -3264,16 +3271,19 @@
           return site?.propertyId;
         }).filter(Boolean))];
 
-        // Get count dates with property info for calendar tooltips
+        // Get count dates with property, site, and bat count info for calendar tooltips
         const countsByDate = {};
         seasonYearCounts.forEach(c => {
           const site = sites.find(s => s.id === c.siteId);
           const property = site ? properties.find(p => p.id === site.propertyId) : null;
           const propertyName = property ? property.name : 'Unknown';
+          const siteName = site ? site.name : 'Unknown';
+          const batCount = parseInt(c.counter1Total) || 0;
+
           if (!countsByDate[c.date]) {
             countsByDate[c.date] = [];
           }
-          countsByDate[c.date].push(propertyName);
+          countsByDate[c.date].push({ propertyName, siteName, batCount });
         });
 
         // Helper to check if date is in count window
@@ -3318,12 +3328,17 @@
                   }
 
                   const dateStr = `${selectedSeasonYear}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                  const dateProperties = countsByDate[dateStr] || [];
-                  const hasCount = dateProperties.length > 0;
+                  const dateCounts = countsByDate[dateStr] || [];
+                  const hasCount = dateCounts.length > 0;
                   const countWindow = isInCountWindow(monthIndex, day);
 
-                  const uniqueProperties = [...new Set(dateProperties)];
-                  const tooltipText = hasCount ? uniqueProperties.join(', ') : '';
+                  // Build tooltip with site details
+                  let tooltipText = '';
+                  if (hasCount) {
+                    const totalBats = dateCounts.reduce((sum, c) => sum + c.batCount, 0);
+                    const lines = dateCounts.map(c => `${c.siteName}: ${c.batCount} bats`);
+                    tooltipText = lines.join('\n') + `\n─────────\nTotal: ${totalBats} bats`;
+                  }
 
                   let bgColor = 'transparent';
                   let textColor = colors.text;
