@@ -1382,7 +1382,7 @@
 
               <div style={styles.formGroup}>
                 <label style={styles.label}>Your Name *</label>
-                <input type="text" value={form.name || ''} onChange={(e) => setForm({ ...form, name: e.target.value })} style={styles.input} placeholder="e.g. Rob Welsh" />
+                <input type="text" value={form.name || ''} onChange={(e) => setForm({ ...form, name: e.target.value })} style={styles.input} placeholder="e.g. Jane Smith" />
               </div>
 
               <div style={styles.formGroup}>
@@ -1397,7 +1397,7 @@
                 </div>
                 <div style={styles.formGroup}>
                   <label style={styles.label}>Email</label>
-                  <input type="email" value={form.email || ''} onChange={(e) => setForm({ ...form, email: e.target.value })} style={styles.input} placeholder="e.g. rob@example.com" />
+                  <input type="email" value={form.email || ''} onChange={(e) => setForm({ ...form, email: e.target.value })} style={styles.input} placeholder="e.g. jane@example.com" />
                 </div>
               </div>
             </div>
@@ -1534,7 +1534,7 @@
 
               <div style={styles.infoBox}>
                 A <strong>Property</strong> represents a landowner and their land. Each property can have multiple roost sites 
-                (e.g., Gary Wickett's property might have a house roof roost AND two bat boxes).
+                (e.g., a landowner's property might have a house roof roost AND two bat boxes).
               </div>
 
               {properties.length === 0 ? (
@@ -1750,7 +1750,7 @@
 
               <div style={styles.formGroup}>
                 <label style={styles.label}>Property Name *</label>
-                <input type="text" value={form.name || ''} onChange={(e) => setForm({ ...form, name: e.target.value })} style={styles.input} placeholder="e.g. Wickett Property, Smith Farm" />
+                <input type="text" value={form.name || ''} onChange={(e) => setForm({ ...form, name: e.target.value })} style={styles.input} placeholder="e.g. Hillside Property, Smith Farm" />
                 <p style={styles.helpText}>A memorable name for this property/landowner</p>
               </div>
 
@@ -1767,7 +1767,7 @@
                   
                   <div style={styles.formGroup}>
                     <label style={styles.label}>Landowner Name</label>
-                    <input type="text" value={form.landownerName || ''} onChange={(e) => setForm({ ...form, landownerName: e.target.value })} style={styles.input} placeholder="e.g. Gary Wickett" />
+                    <input type="text" value={form.landownerName || ''} onChange={(e) => setForm({ ...form, landownerName: e.target.value })} style={styles.input} placeholder="e.g. Jane Smith" />
                   </div>
 
                   <div style={styles.formGroup}>
@@ -1782,7 +1782,7 @@
                     </div>
                     <div style={styles.formGroup}>
                       <label style={styles.label}>Landowner Email</label>
-                      <input type="email" value={form.landownerEmail || ''} onChange={(e) => setForm({ ...form, landownerEmail: e.target.value })} style={styles.input} placeholder="e.g. gary@example.com" />
+                      <input type="email" value={form.landownerEmail || ''} onChange={(e) => setForm({ ...form, landownerEmail: e.target.value })} style={styles.input} placeholder="e.g. jane@example.com" />
                     </div>
                   </div>
                 </>
@@ -1806,7 +1806,7 @@
                   placeholder="e.g. 4.5" 
                 />
                 <p style={styles.helpText}>
-                  Distance from 83 Blue Heron Road to this property. Used to calculate round-trip mileage for volunteer expense tracking.
+                  Distance from the base location to this property. Used to calculate round-trip mileage for volunteer expense tracking.
                 </p>
               </div>
             </div>
@@ -4679,7 +4679,7 @@
               trip.date || '',
               escapeCSV(trip.property?.name || 'Unknown'),
               'BC Annual Bat Count',
-              escapeCSV('83 Blue Heron Rd, Thetis Island, BC'),
+              escapeCSV('Thetis Island, BC'),
               escapeCSV(toAddress),
               trip.roundTripKm > 0 ? trip.roundTripKm.toFixed(1) : '',
             ];
@@ -4789,7 +4789,7 @@
                   <h3 style={{ fontSize: '20px', color: '#2c5530', marginTop: '32px', marginBottom: '16px' }}>Trip Log</h3>
                   <div style={styles.infoBox}>
                     This log can be used for volunteer expense reimbursement or charitable donation receipts.
-                    All trips are from 83 Blue Heron Road, Thetis Island to the property and back.
+                    All trips are from the base location to the property and back.
                   </div>
                   <div style={{ overflowX: 'auto' }}>
                     <table style={{ ...styles.table, fontSize: '16px' }}>
@@ -4906,7 +4906,7 @@
 
               <div style={{ textAlign: 'center', paddingTop: '16px', borderTop: `1px solid ${colors.sand}` }}>
                 <p style={{ fontSize: '14px', color: colors.textLight, margin: 0 }}>
-                  Made with ❤️ for bat conservation and my dad, Rob Welsh, the Batman of Thetis Island
+                  Made with ❤️ for bat conservation
                 </p>
               </div>
             </div>
