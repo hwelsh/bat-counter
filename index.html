@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Thetis Island Bat Watch</title>
+  <title>BC Community Bat Counter</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦇</text></svg>">
   <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
@@ -328,8 +328,10 @@
       const [sites, setSites] = useState([]);
       const [counts, setCounts] = useState([]);
       const [appSettings, setAppSettings] = useState({
-        appTitle: 'Thetis Island Bat Watch',
-        appSubtitle: 'In partnership with the BC Community Bat Program & Thetis Island Nature Conservancy'
+        appTitle: 'BC Community Bat Counter',
+        appSubtitle: 'Supporting bat conservation in BC by making it simple',
+        appLogo: '',
+        appWebsite: ''
       });
       const [editingProperty, setEditingProperty] = useState(null);
       const [editingSite, setEditingSite] = useState(null);
@@ -358,6 +360,7 @@
       useEffect(() => { localStorage.setItem('batcount_sites', JSON.stringify(sites)); }, [sites]);
       useEffect(() => { localStorage.setItem('batcount_counts', JSON.stringify(counts)); }, [counts]);
       useEffect(() => { localStorage.setItem('batcount_appsettings', JSON.stringify(appSettings)); }, [appSettings]);
+      useEffect(() => { document.title = appSettings.appTitle || 'BC Community Bat Counter'; }, [appSettings.appTitle]);
 
       const showMessage = (text, type = 'success') => {
         setMessage({ text, type });
@@ -440,7 +443,7 @@
 
       // Export functions
       const exportBackup = () => {
-        const backup = { myInfo, properties, sites, counts, exportedAt: new Date().toISOString(), version: 2 };
+        const backup = { myInfo, properties, sites, counts, appSettings, exportedAt: new Date().toISOString(), version: 2 };
         const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -472,6 +475,7 @@
                 setProperties(backup.properties || []);
                 setSites(backup.sites || []);
                 setCounts(backup.counts || []);
+                if (backup.appSettings) setAppSettings(backup.appSettings);
                 showMessage('Backup restored!');
               }
             } else {
@@ -487,12 +491,12 @@
 
       // BC Bats Excel Export Function
       const exportToBCBats = async () => {
-        const surveyName = myInfo.surveyName || 'Thetis Island Bat Watch';
+        const surveyName = myInfo.surveyName || appSettings.appTitle || 'BC Community Bat Counter';
         const currentYear = new Date().getFullYear();
 
         // Create workbook using ExcelJS
         const workbook = new ExcelJS.Workbook();
-        workbook.creator = 'Thetis Island Bat Watch';
+        workbook.creator = appSettings.appTitle || 'BC Community Bat Counter';
         workbook.created = new Date();
 
         // Header style: soft yellow background, vertical text, Arial 12pt, right-justified, with borders
@@ -755,7 +759,7 @@
           ['Wind ', 'wind description and speed', '4', 'Moderate Breeze', 'Small branches begin to move', '20-29 km/hr'],
           ['Wind ', 'wind description and speed', '5', 'Windy', 'Small trees or more in canopy sway 30+ km/hr', ''],
           ['Wind ', 'wind description and speed', '6', 'not recorded', '', ''],
-          ['Study Area Name', 'What bat project / region', 'TIBW', 'Thetis Island Bat Watch', 'Thetis Island, BC', '']
+          ['Study Area Name', 'What bat project / region', myInfo.studyAreaCode || '', myInfo.surveyName || appSettings.appTitle || 'BC Community Bat Counter', myInfo.studyAreaLocation || '', '']
         ];
         addSheet('New Field Definitions', newFieldsHeaders, newFieldsRows,
           [20, 30, 20, 25, 35, 10]
@@ -1404,16 +1408,31 @@
 
             <div style={styles.card}>
               <h2 style={styles.cardTitle}>🦇 BC Community Bat Program</h2>
-              
+              <div style={styles.infoBox}>
+                These fields are assigned by your BC Bats regional coordinator and appear in your official BC Bats data export.
+              </div>
+
               <div style={styles.formGroup}>
                 <label style={styles.label}>Survey Name</label>
-                <input type="text" value={form.surveyName || ''} onChange={(e) => setForm({ ...form, surveyName: e.target.value })} style={styles.input} placeholder="Thetis Island Bat Watch" />
-                <p style={styles.helpText}>
-                  This is your official survey name registered with BC Bats. It appears as the "Study Area Name" in the BC Bats database.
-                </p>
-                <div style={{ ...styles.warningBox, marginTop: '12px' }}>
-                  ⚠️ Only change this if instructed by your regional coordinator.
+                <input type="text" value={form.surveyName || ''} onChange={(e) => setForm({ ...form, surveyName: e.target.value })} style={styles.input} placeholder="e.g. My Community Bat Watch" />
+                <p style={styles.helpText}>Your official survey name registered with BC Bats.</p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Study Area Code</label>
+                  <input type="text" value={form.studyAreaCode || ''} onChange={(e) => setForm({ ...form, studyAreaCode: e.target.value })} style={styles.input} placeholder="e.g. MYBC" />
+                  <p style={styles.helpText}>Short code assigned by BC Bats (e.g. TIBW).</p>
                 </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Study Area Location</label>
+                  <input type="text" value={form.studyAreaLocation || ''} onChange={(e) => setForm({ ...form, studyAreaLocation: e.target.value })} style={styles.input} placeholder="e.g. Vancouver Island, BC" />
+                  <p style={styles.helpText}>General location description for BC Bats.</p>
+                </div>
+              </div>
+
+              <div style={styles.warningBox}>
+                ⚠️ Only change these fields if instructed by your regional coordinator.
               </div>
             </div>
 
@@ -1484,7 +1503,7 @@
                     value={appSettings.appTitle || ''}
                     onChange={(e) => setAppSettings({ ...appSettings, appTitle: e.target.value })}
                     style={styles.input}
-                    placeholder="Thetis Island Bat Watch"
+                    placeholder="BC Community Bat Counter"
                   />
                 </div>
                 <div style={styles.formGroup}>
@@ -1494,12 +1513,53 @@
                     value={appSettings.appSubtitle || ''}
                     onChange={(e) => setAppSettings({ ...appSettings, appSubtitle: e.target.value })}
                     style={styles.input}
-                    placeholder="In partnership with the BC Community Bat Program"
+                    placeholder="Supporting bat conservation in BC by making it simple"
                   />
                 </div>
-                <p style={{ ...styles.helpText, marginTop: '8px' }}>
-                  Customize the app title and subtitle to match your organization or project.
-                </p>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Group Website URL (optional)</label>
+                  <input
+                    type="url"
+                    value={appSettings.appWebsite || ''}
+                    onChange={(e) => setAppSettings({ ...appSettings, appWebsite: e.target.value })}
+                    style={styles.input}
+                    placeholder="https://yourgroup.org"
+                  />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Organization Logo (optional)</label>
+                  {appSettings.appLogo && (
+                    <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <img src={appSettings.appLogo} alt="Current logo" style={{ height: '60px', width: 'auto', border: `1px solid ${colors.sand}`, borderRadius: '4px', padding: '4px' }} />
+                      <button
+                        type="button"
+                        onClick={() => setAppSettings({ ...appSettings, appLogo: '' })}
+                        style={{ ...styles.button, ...styles.buttonSecondary, padding: '6px 12px', fontSize: '13px' }}
+                      >
+                        Remove Logo
+                      </button>
+                    </div>
+                  )}
+                  <label style={{ ...styles.button, ...styles.buttonSecondary, cursor: 'pointer', display: 'inline-block' }}>
+                    {appSettings.appLogo ? '🖼️ Replace Logo' : '📁 Upload Logo'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = (ev) => setAppSettings({ ...appSettings, appLogo: ev.target.result });
+                        reader.readAsDataURL(file);
+                        e.target.value = '';
+                      }}
+                    />
+                  </label>
+                  <p style={{ ...styles.helpText, marginTop: '8px' }}>
+                    Your logo appears in the app header and footer. PNG or SVG recommended. Stored locally in your browser and included in backups.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -3396,7 +3456,7 @@
             <div className="print-header" style={{ display: 'none' }}>
               <style>{`.print-header { display: block !important; } @media screen { .print-header { display: none !important; } }`}</style>
               <h1 style={{ fontSize: '24px', fontWeight: '600', color: colors.forest, margin: '0 0 8px 0' }}>
-                🦇 {appSettings.appTitle || 'Thetis Island Bat Watch'}
+                🦇 {appSettings.appTitle || 'BC Community Bat Counter'}
               </h1>
               <p style={{ fontSize: '14px', color: colors.textLight, margin: 0 }}>
                 {selectedSeasonYear} Season Report • Printed {new Date().toLocaleDateString()}
@@ -3749,7 +3809,7 @@
             <div className="print-header" style={{ display: 'none' }}>
               <style>{`.print-header { display: block !important; } @media screen { .print-header { display: none !important; } }`}</style>
               <h1 style={{ fontSize: '24px', fontWeight: '600', color: colors.forest, margin: '0 0 8px 0' }}>
-                🦇 {appSettings.appTitle || 'Thetis Island Bat Watch'}
+                🦇 {appSettings.appTitle || 'BC Community Bat Counter'}
               </h1>
               <p style={{ fontSize: '14px', color: colors.textLight, margin: 0 }}>
                 Impact Report {selectedYear === 'all' ? '(All Time)' : `(${selectedYear})`} • Printed {new Date().toLocaleDateString()}
@@ -4087,7 +4147,7 @@
             <div className="print-header" style={{ display: 'none' }}>
               <style>{`.print-header { display: block !important; } @media screen { .print-header { display: none !important; } }`}</style>
               <h1 style={{ fontSize: '24px', fontWeight: '600', color: colors.forest, margin: '0 0 8px 0' }}>
-                🦇 {appSettings.appTitle || 'Thetis Island Bat Watch'}
+                🦇 {appSettings.appTitle || 'BC Community Bat Counter'}
               </h1>
               <p style={{ fontSize: '14px', color: colors.textLight, margin: 0 }}>
                 Year-over-Year Comparison: {year1} vs {year2} {selectedPropertyId !== 'all' && selectedProperty ? `• ${selectedProperty.name}` : '• All Properties'} • Printed {new Date().toLocaleDateString()}
@@ -4666,10 +4726,9 @@
           };
 
           const rows = yearTrips.map(trip => {
-            // Build a sensible "To" address
             let toAddress = trip.property?.landownerAddress;
             if (!toAddress && trip.property?.name) {
-              toAddress = trip.property.name + ', Thetis Island, BC';
+              toAddress = trip.property.name;
             }
             if (!toAddress) {
               toAddress = 'Unknown property';
@@ -4679,7 +4738,7 @@
               trip.date || '',
               escapeCSV(trip.property?.name || 'Unknown'),
               'BC Annual Bat Count',
-              escapeCSV('Thetis Island, BC'),
+              escapeCSV(myInfo.address || ''),
               escapeCSV(toAddress),
               trip.roundTripKm > 0 ? trip.roundTripKm.toFixed(1) : '',
             ];
@@ -4693,7 +4752,7 @@
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = 'Thetis-Island-Bat-Count-Mileage-' + selectedYear + '.csv';
+          a.download = 'Bat-Count-Mileage-' + selectedYear + '.csv';
           a.click();
           URL.revokeObjectURL(url);
           showMessage('Mileage report exported!');
@@ -4895,9 +4954,6 @@
                 <h3 style={{ fontSize: '18px', fontWeight: '600', color: colors.forest, marginBottom: '12px' }}>Acknowledgments</h3>
                 <p style={{ color: colors.text, lineHeight: '1.6' }}>
                   This tool was developed in collaboration with the{' '}
-                  <a href="https://www.thetisislandnatureconservancy.org" target="_blank" rel="noopener noreferrer" style={{ color: colors.forest }}>
-                    Thetis Island Nature Conservancy
-                  </a>'s Bat Watch program and the{' '}
                   <a href="https://bcbats.ca" target="_blank" rel="noopener noreferrer" style={{ color: colors.forest }}>
                     BC Community Bat Program
                   </a>.
@@ -4906,7 +4962,7 @@
 
               <div style={{ textAlign: 'center', paddingTop: '16px', borderTop: `1px solid ${colors.sand}` }}>
                 <p style={{ fontSize: '14px', color: colors.textLight, margin: 0 }}>
-                  Made with ❤️ for bat conservation and my dad, Rob Welsh, the Batman of Thetis Island
+                  Made with ❤️ for bat conservation
                 </p>
               </div>
             </div>
@@ -4926,15 +4982,17 @@
           <header style={styles.header} className="no-print">
             <div style={styles.headerTop}>
               <div style={styles.headerBrand}>
-                <span style={{ fontSize: '40px' }}>🦇</span>
+                {appSettings.appLogo
+                  ? (appSettings.appWebsite
+                      ? <a href={appSettings.appWebsite} target="_blank" rel="noopener noreferrer"><img src={appSettings.appLogo} alt="Organization logo" style={{ height: '60px', width: 'auto' }} /></a>
+                      : <img src={appSettings.appLogo} alt="Organization logo" style={{ height: '60px', width: 'auto' }} />)
+                  : <span style={{ fontSize: '40px' }}>🦇</span>
+                }
                 <div>
-                  <h1 style={styles.title}>{appSettings.appTitle || 'Thetis Island Bat Watch'}</h1>
-                  <p style={styles.subtitle}>{appSettings.appSubtitle || 'In partnership with the BC Community Bat Program & Thetis Island Nature Conservancy'}</p>
+                  <h1 style={styles.title}>{appSettings.appTitle || 'BC Community Bat Counter'}</h1>
+                  <p style={styles.subtitle}>{appSettings.appSubtitle || 'Supporting bat conservation in BC by making it simple'}</p>
                 </div>
               </div>
-              <a href="https://www.thetisislandnatureconservancy.org" target="_blank" rel="noopener noreferrer" title="Thetis Island Nature Conservancy">
-                <img src="https://static.wixstatic.com/media/a5ed41_b0523212bda343688442821f3d57635e~mv2.png/v1/crop/x_0,y_37,w_1000,h_926/fill/w_135,h_125,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/ThINC%20logo_1000x1000px.png" alt="ThINC Logo" style={styles.thincLogo} />
-              </a>
             </div>
             {view !== 'home' && (
               <button
@@ -4976,12 +5034,22 @@
 
           <footer style={{ marginTop: '48px', padding: '32px 24px', textAlign: 'center', borderTop: `2px solid ${colors.sand}` }} className="no-print">
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '24px', marginBottom: '20px', flexWrap: 'wrap' }}>
-              <a href="https://www.thetisislandnatureconservancy.org" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', textAlign: 'center' }}>
-                <img src="https://static.wixstatic.com/media/a5ed41_b0523212bda343688442821f3d57635e~mv2.png/v1/crop/x_0,y_37,w_1000,h_926/fill/w_80,h_74,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/ThINC%20logo_1000x1000px.png" alt="ThINC Logo" style={{ height: '60px' }} />
-                <p style={{ margin: '8px 0 0 0', fontWeight: '600', color: colors.forest }}>Thetis Island Nature Conservancy</p>
-                <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: colors.sage }}>thetisislandnatureconservancy.org</p>
-              </a>
-              <div style={{ width: '1px', height: '70px', backgroundColor: colors.sand }}></div>
+              {(appSettings.appLogo || appSettings.appTitle) && (
+                <>
+                  {appSettings.appWebsite
+                    ? <a href={appSettings.appWebsite} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', textAlign: 'center' }}>
+                        {appSettings.appLogo && <img src={appSettings.appLogo} alt="Organization logo" style={{ height: '60px' }} />}
+                        <p style={{ margin: '8px 0 0 0', fontWeight: '600', color: colors.forest }}>{appSettings.appTitle}</p>
+                        <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: colors.sage }}>{appSettings.appWebsite.replace(/^https?:\/\//, '')}</p>
+                      </a>
+                    : <div style={{ textAlign: 'center' }}>
+                        {appSettings.appLogo && <img src={appSettings.appLogo} alt="Organization logo" style={{ height: '60px' }} />}
+                        <p style={{ margin: '8px 0 0 0', fontWeight: '600', color: colors.forest }}>{appSettings.appTitle}</p>
+                      </div>
+                  }
+                  <div style={{ width: '1px', height: '70px', backgroundColor: colors.sand }}></div>
+                </>
+              )}
               <a href="https://bcbats.ca" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', textAlign: 'center' }}>
                 <img src="bc-bat-logo.png" alt="BC Community Bat Programs" style={{ height: '60px' }} />
                 <p style={{ margin: '8px 0 0 0', fontWeight: '600', color: colors.forest }}>BC Community Bat Program</p>
